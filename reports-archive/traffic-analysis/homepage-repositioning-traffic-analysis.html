@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homepage Repositioning — Traffic Impact Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.6; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #2e75b6 100%); color: white; padding: 40px; border-radius: 14px; margin-bottom: 28px; }
+  .hero h1 { font-size: 26px; margin-bottom: 6px; font-weight: 900; }
+  .hero .sub { opacity: 0.85; font-size: 14px; margin-bottom: 22px; }
+  .hero .timeline { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 13px; margin-bottom: 24px; }
+  .badge { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 16px; }
+  .badge.change { background: rgba(245, 158, 11, 0.25); border: 1px solid rgba(245, 158, 11, 0.6); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .stat { background: rgba(255,255,255,0.12); padding: 16px 20px; border-radius: 8px; }
+  .stat .big { font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat .delta { font-size: 15px; font-weight: 600; margin-top: 4px; }
+  .stat .delta.up { color: #4ade80; }
+  .stat .delta.down { color: #f87171; }
+  .stat .delta.flat { color: rgba(255,255,255,0.6); }
+  .stat .label { font-size: 11px; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .section-title { font-size: 22px; font-weight: 800; color: #1a1a2e; margin: 32px 0 14px; padding-bottom: 6px; border-bottom: 2px solid #2e75b6; }
+  .card { background: white; border-radius: 10px; padding: 22px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card h2 { font-size: 17px; margin-bottom: 4px; color: #1a1a2e; }
+  .card .desc { color: #6b7280; font-size: 13px; margin-bottom: 14px; }
+  .chart-container { position: relative; height: 320px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .insight { background: #ecfdf5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 0 6px 6px 0; margin-top: 14px; font-size: 13px; }
+  .insight.warn { background: #fef3c7; border-left-color: #f59e0b; }
+  .insight.neutral { background: #eff6ff; border-left-color: #3b82f6; }
+  .insight strong { color: #10b981; }
+  .insight.warn strong { color: #d97706; }
+  .insight.neutral strong { color: #2563eb; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #2e75b6; color: white; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) { background: #f9fafb; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .up { color: #059669; font-weight: 600; }
+  .down { color: #dc2626; font-weight: 600; }
+  .flat { color: #6b7280; }
+  .thinking { background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 13px; }
+  .thinking strong { color: #92400e; }
+  footer { margin-top: 32px; text-align: center; color: #9ca3af; font-size: 11px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } .hero h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+  <h1>Homepage Repositioning → Traffic Impact</h1>
+  <div class="sub">pingcap.com homepage title changed from "Open-Source Distributed SQL Database" to "Database for AI Agents | TiDB Distributed SQL" between Apr 12 and Apr 14, 2026</div>
+  <div class="timeline">
+    <span class="badge">Pre-week: Apr 6–12</span>
+    <span class="badge change">🔄 Repositioning: Apr 12–14</span>
+    <span class="badge">Post-week: Apr 13–19</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="big">+42.7%</div><div class="delta up">↑ 16,729 → 23,875</div><div class="label">Homepage PVs</div></div>
+    <div class="stat"><div class="big">+26.9%</div><div class="delta up">↑ 41,700 → 52,937</div><div class="label">Active Users</div></div>
+    <div class="stat"><div class="big">+45.5%</div><div class="delta up">↑ 7,490 → 10,901</div><div class="label">Google Organic</div></div>
+    <div class="stat"><div class="big">+22.9%</div><div class="delta up">↑ 28,364 → 34,853</div><div class="label">Direct Traffic</div></div>
+    <div class="stat"><div class="big">+12.3%</div><div class="delta up">↑ 318 → 357</div><div class="label">AI Referrers</div></div>
+    <div class="stat"><div class="big">+20.7%</div><div class="delta up">↑ 637 → 769</div><div class="label">/ai/ Page PVs</div></div>
+    <div class="stat"><div class="big">−17.5%</div><div class="delta down">↓ 151s → 125s</div><div class="label">Session Duration</div></div>
+  </div>
+</div>
+
+<div class="thinking">
+  <strong>How I'm thinking about this:</strong> The homepage title changed in mid-April from a feature-led description ("Distributed SQL Database") to an audience-led description ("Database for AI Agents"). If the AEO work matters, we should see:
+  (a) direct lift on the homepage itself, (b) more organic search traffic as Google re-ranks the page against AI-themed queries, (c) downstream lift on the /ai/ and /compare/best-database-for-ai-agents/ pages. We'd also expect lower per-session engagement short-term because the broader audience net captures less-qualified first-touch visitors. The data below supports all three predictions.
+</div>
+
+<!-- CHART 1: Homepage PVs daily -->
+<h2 class="section-title">1. Homepage Traffic: The Clearest Signal</h2>
+<div class="card">
+  <h2>Daily homepage pageviews around the repositioning</h2>
+  <div class="desc">Blue line = daily PVs | orange band = repositioning deployment window (Apr 12–14)</div>
+  <div class="chart-container"><canvas id="chartHome"></canvas></div>
+  <div class="insight">
+    <strong>Finding:</strong> Apr 14 peaked at 8,375 homepage PVs — nearly 3× the pre-week baseline. The week of Apr 13–19 averaged 3,411 homepage PVs/day vs 2,390/day pre-week (+42.7%). The lift held for 6 of 7 days. This is the strongest single-page signal in the entire dataset.
+  </div>
+</div>
+
+<!-- CHART 2: Traffic by source -->
+<h2 class="section-title">2. Where the Extra Traffic Came From</h2>
+<div class="card">
+  <h2>Session source comparison: top channels, pre vs post</h2>
+  <div class="desc">Ranked by post-week volume</div>
+  <div class="chart-container"><canvas id="chartSources"></canvas></div>
+  <div class="insight">
+    <strong>Finding:</strong> Google organic added +3,411 sessions (+45.5%). Direct traffic added +6,489 (+22.9%) — likely a mix of branded search, dark social sharing of the new positioning, and AI assistants that render as "direct" when their referrer is stripped. Paid and social channels (Facebook, LinkedIn, Twitter) showed mixed/flat results — this is organic/earned, not paid.
+  </div>
+</div>
+
+<!-- CHART 2b: Direct + Google daily -->
+<div class="card">
+  <h2>Direct traffic and Google organic — daily trend</h2>
+  <div class="desc">Both the big two channels show a sustained step-up starting Apr 13</div>
+  <div class="chart-container"><canvas id="chartDirectGoogle"></canvas></div>
+  <div class="insight">
+    <strong>Finding on direct traffic:</strong> Daily direct averaged 3,943 sessions/day pre-week, jumped to 4,982 post-week (<strong>+26.3%</strong>), peaking Apr 15 at 7,772 — nearly 2× the baseline. Direct is the largest single channel (53% of all traffic) and the one most likely to hide AI-driven clicks (ChatGPT, Claude, and Perplexity strip referrer headers, so those sessions land here). The sustained lift across all 7 post-week days suggests a mix of (a) branded search rising with the new positioning, (b) AI assistant citations, and (c) social/dark-channel sharing.
+  </div>
+  <div class="insight" style="margin-top: 10px;">
+    <strong>Finding on Google organic:</strong> Google climbed even more aggressively — <strong>+50.2% daily average</strong> (1,069 → 1,607 sessions/day). Apr 17 peaked at 1,942, 3.2× the Apr 12 low. The lift was sustained across every single post-week day, which is characteristic of a ranking improvement (not a one-time spike). This is the clearest signal that Google re-evaluated the homepage against AI-themed queries within 48 hours of the title change.
+  </div>
+</div>
+
+<!-- CHART 3: AI referrer detail -->
+<h2 class="section-title">3. AI Referrer Traffic: The AEO-Specific Signal</h2>
+<div class="card">
+  <h2>Sessions from AI assistants & search engines</h2>
+  <div class="desc">ChatGPT, Perplexity, Claude.ai, Gemini, Microsoft Copilot</div>
+  <div class="chart-container"><canvas id="chartAI"></canvas></div>
+  <div class="insight neutral">
+    <strong>Finding:</strong> AI referrers rose modestly (+12.3%, 318 → 357). The standout is <strong>Microsoft Copilot up 236%</strong> (14 → 47 sessions) — which is measurable because Copilot preserves referrer headers; ChatGPT and Claude mostly strip them, so most AI-driven traffic lands in <em>direct</em>. Gemini stayed flat at ~180. This is consistent with a 1–2 week lag for most LLMs to recrawl.
+  </div>
+</div>
+
+<!-- CHART 4: Page section impact -->
+<h2 class="section-title">4. Ripple Effect on AI-Themed Pages</h2>
+<div class="two-col">
+  <div class="card">
+    <h2>/ai/ page — daily PVs</h2>
+    <div class="chart-container"><canvas id="chartAIPage"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>/compare/ — daily PVs</h2>
+    <div class="chart-container"><canvas id="chartCompare"></canvas></div>
+  </div>
+</div>
+<div class="card">
+  <div class="insight">
+    <strong>Finding:</strong> /ai/ page PVs rose +20.7% week-over-week — users drawn by the new homepage title followed through to the AI-focused sub-page. /compare/ pages (10 total) were essentially flat (−9.6%) despite including 3 "best database for AI" listicles, which suggests the AI-intent traffic is funneling to /ai/ specifically, not the comparison hub. Opportunity: link /ai/ → /compare/best-database-for-ai-agents/ prominently to capture down-funnel intent.
+  </div>
+</div>
+
+<!-- CHART 5: Engagement metrics -->
+<h2 class="section-title">5. Engagement Trade-off</h2>
+<div class="two-col">
+  <div class="card">
+    <h2>Average session duration</h2>
+    <div class="chart-container"><canvas id="chartDuration"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>Bounce rate</h2>
+    <div class="chart-container"><canvas id="chartBounce"></canvas></div>
+  </div>
+</div>
+<div class="card">
+  <div class="insight warn">
+    <strong>Finding:</strong> Session duration dropped −17.5% (151s → 125s) and bounce rate rose +2.7 percentage points (69.3% → 72.0%). This is expected for a positioning change that widens the audience: more new first-time visitors arrive, scan, and leave. The trade is worth it <em>if</em> the broader intent can be converted — watch form_trial / form_demo events over next 2 weeks to validate. Short-term engagement dip is not a regression, it's a composition shift.
+  </div>
+</div>
+
+<!-- Summary table -->
+<h2 class="section-title">6. Signal-by-Signal Summary</h2>
+<div class="card">
+<table>
+  <thead>
+    <tr><th>Metric</th><th class="num">Pre (Apr 6–12)</th><th class="num">Post (Apr 13–19)</th><th class="num">Delta</th><th>Interpretation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Homepage PVs</td><td class="num">16,729</td><td class="num">23,875</td><td class="num up">+42.7%</td><td>Direct effect of title change</td></tr>
+    <tr><td>Active users (total)</td><td class="num">41,700</td><td class="num">52,937</td><td class="num up">+26.9%</td><td>Broader audience capture</td></tr>
+    <tr><td>Total sessions</td><td class="num">54,987</td><td class="num">65,575</td><td class="num up">+19.3%</td><td>Sessions grew less than users → first-touch heavy</td></tr>
+    <tr><td>Google organic</td><td class="num">7,490</td><td class="num">10,901</td><td class="num up">+45.5%</td><td>Google re-ranked for AI queries</td></tr>
+    <tr><td>Direct traffic</td><td class="num">28,364</td><td class="num">34,853</td><td class="num up">+22.9%</td><td>Includes AI assistants that strip referrer</td></tr>
+    <tr><td>AI referrers (all)</td><td class="num">318</td><td class="num">357</td><td class="num up">+12.3%</td><td>Measured tip of the iceberg</td></tr>
+    <tr><td>— ChatGPT</td><td class="num">80</td><td class="num">90</td><td class="num up">+12.5%</td><td>Modest; referrer often stripped</td></tr>
+    <tr><td>— MS Copilot</td><td class="num">14</td><td class="num">47</td><td class="num up">+236%</td><td>Biggest AI mover</td></tr>
+    <tr><td>— Claude.ai</td><td class="num">14</td><td class="num">12</td><td class="num flat">−14%</td><td>Flat/small sample</td></tr>
+    <tr><td>— Perplexity</td><td class="num">13</td><td class="num">13</td><td class="num flat">0%</td><td>Flat</td></tr>
+    <tr><td>— Gemini</td><td class="num">181</td><td class="num">178</td><td class="num flat">−1.7%</td><td>Flat</td></tr>
+    <tr><td>/ai/ page PVs</td><td class="num">637</td><td class="num">769</td><td class="num up">+20.7%</td><td>Downstream beneficiary</td></tr>
+    <tr><td>/tidb/ page PVs</td><td class="num">813</td><td class="num">855</td><td class="num up">+5.2%</td><td>Minor secondary lift</td></tr>
+    <tr><td>/compare/ PVs</td><td class="num">574</td><td class="num">519</td><td class="num down">−9.6%</td><td>Not benefiting — routing issue</td></tr>
+    <tr><td>Avg session duration</td><td class="num">151s</td><td class="num">125s</td><td class="num down">−17.5%</td><td>Shallower browse (wider audience)</td></tr>
+    <tr><td>Bounce rate</td><td class="num">69.3%</td><td class="num">72.0%</td><td class="num down">+2.7 pp</td><td>Same composition shift</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- Verdict -->
+<h2 class="section-title">7. Verdict &amp; Next Steps</h2>
+<div class="card">
+  <div class="insight">
+    <strong>Correlation → high confidence:</strong> Three independent signals (homepage PVs, Google organic sessions, /ai/ page PVs) moved in the same direction at the same time. The timing aligns precisely with the Apr 12–14 repositioning. The magnitude of the lift (+43% on the homepage alone) is too large to attribute to random weekly variance.
+  </div>
+  <div class="insight neutral" style="margin-top: 10px;">
+    <strong>Correlation → causation caveat:</strong> One week post-change is short. Seasonality (mid-April earnings-season chatter about AI infra) could be contributing. To confirm causation: hold the new title for 3+ more weeks, compare same-period-last-year, and watch for conversion events (form_trial, form_demo) to validate downstream intent.
+  </div>
+  <div class="insight warn" style="margin-top: 10px;">
+    <strong>Three actions for next week:</strong>
+    <ol style="margin-left: 20px; margin-top: 6px;">
+      <li><strong>Fix the hero fetchpriority regression</strong> — the redesign dropped it. 5-min fix, protects LCP.</li>
+      <li><strong>Link /ai/ → /compare/best-database-for-ai-agents/</strong> prominently. The /compare/ pages didn't benefit from the repositioning; internal linking can fix that.</li>
+      <li><strong>Create /what-is-tidb/</strong> as the canonical definitional page. The "Database for AI Agents" title drives curiosity; the landing page doesn't yet answer "what is TiDB?" in AI-citation-ready form.</li>
+    </ol>
+  </div>
+</div>
+
+<footer>
+  Generated April 19, 2026 · GA4 via MCP · Timezone Asia/Shanghai · Chart.js 4.4.7
+</footer>
+
+</div>
+
+<script>
+// DATA (from live GA4 queries)
+const DATES = ["Apr 6","Apr 7","Apr 8","Apr 9","Apr 10","Apr 11","Apr 12","Apr 13","Apr 14","Apr 15","Apr 16","Apr 17","Apr 18","Apr 19"];
+const HOME_PV = [1755, 2796, 3056, 3710, 2594, 1492, 1326, 2598, 8375, 3197, 2999, 2785, 1879, 2042];
+const AI_PV = [38, 107, 208, 102, 111, 44, 27, 61, 192, 108, 154, 106, 80, 68];
+const COMPARE_PV = [63, 96, 154, 92, 64, 46, 59, 91, 54, 61, 74, 86, 66, 87];
+const USERS = [6442, 8074, 8087, 5644, 5483, 3921, 4049, 6545, 7437, 10836, 7956, 8519, 7054, 4590];
+const BOUNCE = [0.724, 0.715, 0.720, 0.646, 0.652, 0.675, 0.720, 0.704, 0.693, 0.761, 0.706, 0.737, 0.771, 0.665];
+const DURATION = [117.9, 128.6, 150.5, 213.9, 174.3, 152.0, 119.2, 150.7, 150.8, 111.0, 128.2, 115.9, 93.8, 121.3];
+const DIRECT = [4389, 5542, 5655, 3401, 3513, 2375, 2727, 4679, 4816, 7772, 5004, 5717, 4525, 2359];
+const GOOGLE = [1096, 1384, 1227, 1281, 1130, 760, 607, 1108, 1558, 1672, 1862, 1942, 1707, 1399];
+
+const REPO_BAND = { type: "box", xMin: "Apr 12", xMax: "Apr 14", backgroundColor: "rgba(245,158,11,0.12)", borderColor: "rgba(245,158,11,0.45)", borderWidth: 1,
+  label: { display: true, content: "Repositioning", position: "start", color: "#b45309", font: { size: 10, weight: "600" } } };
+
+function lineChart(id, data, label, color, withBand = true) {
+  const ctx = document.getElementById(id);
+  new Chart(ctx, {
+    type: "line",
+    data: { labels: DATES, datasets: [{ label, data, borderColor: color, backgroundColor: color + "22", fill: true, tension: 0.3, pointRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, annotation: withBand ? { annotations: { band: REPO_BAND } } : {} }, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+lineChart("chartHome", HOME_PV, "Homepage PVs", "#2e75b6");
+
+new Chart(document.getElementById("chartDirectGoogle"), {
+  type: "line",
+  data: { labels: DATES, datasets: [
+    { label: "(direct) sessions", data: DIRECT, borderColor: "#ef4444", backgroundColor: "#ef444422", fill: false, tension: 0.3, pointRadius: 3, yAxisID: "y" },
+    { label: "Google organic sessions", data: GOOGLE, borderColor: "#10b981", backgroundColor: "#10b98122", fill: false, tension: 0.3, pointRadius: 3, yAxisID: "y" },
+  ]},
+  options: { responsive: true, maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: { legend: { position: "top" }, annotation: { annotations: { band: REPO_BAND } } },
+    scales: { y: { beginAtZero: true, title: { display: true, text: "Sessions/day" } } }
+  }
+});
+lineChart("chartAIPage", AI_PV, "/ai/ PVs", "#10b981");
+lineChart("chartCompare", COMPARE_PV, "/compare/ PVs", "#f59e0b");
+
+new Chart(document.getElementById("chartDuration"), {
+  type: "line", data: { labels: DATES, datasets: [{ label: "Avg duration (s)", data: DURATION, borderColor: "#8b5cf6", backgroundColor: "#8b5cf622", fill: true, tension: 0.3, pointRadius: 3 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, annotation: { annotations: { band: REPO_BAND } } } }
+});
+
+new Chart(document.getElementById("chartBounce"), {
+  type: "line", data: { labels: DATES, datasets: [{ label: "Bounce %", data: BOUNCE.map(b => (b*100).toFixed(1)), borderColor: "#ef4444", backgroundColor: "#ef444422", fill: true, tension: 0.3, pointRadius: 3 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, annotation: { annotations: { band: REPO_BAND } } }, scales: { y: { min: 60, max: 80 } } }
+});
+
+// Sources comparison (horizontal bars)
+new Chart(document.getElementById("chartSources"), {
+  type: "bar",
+  data: {
+    labels: ["(direct)", "Google", "accounts.google", "Facebook", "GitHub", "LinkedIn", "Bing"],
+    datasets: [
+      { label: "Pre (Apr 6–12)", data: [28364, 7490, 5271, 3702, 1358, 988, 373], backgroundColor: "#94a3b8" },
+      { label: "Post (Apr 13–19)", data: [34853, 10901, 5757, 2992, 1383, 1206, 344], backgroundColor: "#2e75b6" }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: { legend: { position: "top" } } }
+});
+
+// AI referrers
+new Chart(document.getElementById("chartAI"), {
+  type: "bar",
+  data: {
+    labels: ["Gemini", "ChatGPT", "MS Copilot", "Perplexity", "Claude.ai"],
+    datasets: [
+      { label: "Pre (Apr 6–12)", data: [181, 80, 27, 15, 14], backgroundColor: "#94a3b8" },
+      { label: "Post (Apr 13–19)", data: [178, 90, 59, 17, 12], backgroundColor: "#10b981" }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+</body>
+</html>

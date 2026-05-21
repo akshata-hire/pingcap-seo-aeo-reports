@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PingCAP AEO-Traffic Correlation Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #2e75b6 100%); color: white; padding: 40px; border-radius: 12px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; margin-bottom: 8px; }
+  .header .subtitle { opacity: 0.85; font-size: 16px; }
+  .header .scores { display: flex; gap: 40px; margin-top: 20px; }
+  .header .score-box { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 16px 24px; text-align: center; }
+  .header .score-box .value { font-size: 32px; font-weight: 700; }
+  .header .score-box .label { font-size: 13px; opacity: 0.8; }
+  .card { background: white; border-radius: 10px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 20px; color: #1a1a2e; margin-bottom: 4px; }
+  .card .desc { color: #666; font-size: 14px; margin-bottom: 16px; }
+  .chart-container { position: relative; height: 350px; }
+  .insight { background: #f0f7ff; border-left: 4px solid #2e75b6; padding: 12px 16px; border-radius: 0 6px 6px 0; margin-top: 16px; font-size: 14px; }
+  .insight strong { color: #2e75b6; }
+  .warning { background: #fff8e1; border-left-color: #f59e0b; }
+  .warning strong { color: #d97706; }
+  .positive { background: #f0fdf4; border-left-color: #22c55e; }
+  .positive strong { color: #16a34a; }
+  .corr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .corr-grid .chart-container { height: 280px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { background: #2e75b6; color: white; padding: 10px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) { background: #f8f9fa; }
+  .strong { color: #16a34a; font-weight: 600; }
+  .moderate { color: #d97706; font-weight: 600; }
+  .weak { color: #9ca3af; }
+  .negative { color: #dc2626; font-weight: 600; }
+  .section-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #2e75b6; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .methodology { background: #f8f9fa; padding: 20px; border-radius: 8px; font-size: 13px; color: #666; }
+  @media (max-width: 768px) { .corr-grid, .two-col, .header .scores { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>AEO-Traffic Correlation Analysis</h1>
+  <div class="subtitle">pingcap.com | March 9 - April 12, 2026 (5 weeks)</div>
+  <div class="scores">
+    <div class="score-box"><div class="value">3.5 &rarr; 8.5</div><div class="label">AEO Score (+143%)</div></div>
+    <div class="score-box"><div class="value">-66%</div><div class="label">Active Users (W1&rarr;W5)</div></div>
+    <div class="score-box"><div class="value">-69%</div><div class="label">Blog Traffic (W1&rarr;W5)</div></div>
+    <div class="score-box"><div class="value">r=0.644</div><div class="label">AEO vs Duration</div></div>
+  </div>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<div class="card">
+  <h2>Executive Summary</h2>
+  <div class="desc">5 key findings from correlating AEO improvements with GA4 traffic data</div>
+  <ol style="padding-left:20px; font-size:15px; line-height:2;">
+    <li><strong>Overall traffic declined -66% (W1 vs W5)</strong> despite AEO improvements &mdash; driven by a GTM tracking change on Mar 18 that broke Click_to_Cloud and form_trial event tracking, plus what appears to be seasonal/external factors.</li>
+    <li><strong>Blog traffic dropped -69% after article pruning</strong> (943&rarr;242), but per-article efficiency rose from 20.0 to 24.0 views/article (+20%). Quality over quantity.</li>
+    <li><strong>Engagement metrics improved significantly in Week 5</strong> &mdash; bounce rate dropped to 69.3% (from 77.7%), session duration rose to 151.2s (from 83.7s). Correlation with AEO: r=0.644 (Moderate).</li>
+    <li><strong>Comparison page traffic remained stable</strong> at ~90/day despite pages growing 4&rarr;10. New pages are being indexed but haven't yet attracted significant organic traffic (typical 4-8 week Google indexing lag).</li>
+    <li><strong>/ai/ page showed a traffic spike</strong> (208 PV on Apr 8, 3x normal) coinciding with the hero image WebP + fetchpriority fix &mdash; improved page load likely improved crawlability and user experience.</li>
+    <li><strong>New content hubs (/developers/, listicle comparisons) show early traction.</strong> The developer hub averages ~8 PV/day with a launch spike of 101 PV on Mar 12. Listicle-style comparison pages (/compare/best-distributed-sql-databases/, best-database-for-ai-agents, best-databases-for-saas-applications-at-scale) add long-tail visibility beyond head-to-head comparisons.</li>
+  </ol>
+</div>
+
+<!-- CHART 1: Overall Traffic + AEO -->
+<h2 class="section-title">1. Overall Traffic vs. AEO Score</h2>
+<div class="card">
+  <h2>Daily Active Users with AEO Milestone Overlay</h2>
+  <div class="desc">Blue = daily active users | Orange stepped line = AEO score</div>
+  <div class="chart-container"><canvas id="chart1"></canvas></div>
+  <div class="insight warning">
+    <strong>Key Observation:</strong> A sharp traffic drop occurred on Mar 18 &mdash; exactly when Click_to_Cloud and form_trial events stopped firing.
+    This suggests a GTM/analytics configuration change, not an organic traffic decline. The Apr 2+ decline is a separate pattern (possibly seasonal or related to the article pruning taking effect in search results).
+  </div>
+</div>
+
+<!-- CHART 2: Comparison Pages -->
+<h2 class="section-title">2. Comparison Page Traffic vs. Page Count</h2>
+<div class="card">
+  <h2>Did adding more comparison pages drive more traffic?</h2>
+  <div class="desc">Blue = daily /compare/* pageviews | Orange = number of comparison pages</div>
+  <div class="chart-container"><canvas id="chart2"></canvas></div>
+  <div class="insight">
+    <strong>Finding:</strong> Comparison traffic fluctuates around 60-150 PV/day regardless of page count (4&rarr;10). The new pages (CockroachDB, YugabyteDB, SaaS databases) are indexed but haven't matured in Google's rankings yet.
+    Expect 4-8 weeks for SEO impact. The Apr 8 spike (154 PV) may reflect early indexing of the CockroachDB comparison (published Mar 10).
+  </div>
+</div>
+
+<!-- CHART 3: Blog + Pruning -->
+<h2 class="section-title">3. Blog Traffic vs. Article Pruning</h2>
+<div class="card">
+  <h2>Impact of removing 74% of articles on blog traffic</h2>
+  <div class="desc">Blue = daily /blog/* pageviews | Red stepped line = articles in sitemap</div>
+  <div class="chart-container"><canvas id="chart3"></canvas></div>
+  <div class="insight warning">
+    <strong>Critical Finding:</strong> Blog traffic spiked during the pruning period (Week 3-4: Mar 29-Apr 1 saw 6,000-7,800 PV/day vs 2,600-3,200 baseline),
+    then dropped sharply to 600-1,100 PV/day in Weeks 4-5. The spike may be Googlebot recrawling heavily during the content removal, and the subsequent decline reflects
+    the permanent removal of ~700 articles worth of long-tail traffic. However, per-article efficiency improved 20% (from 20.0 to 24.0 PV/article/week).
+  </div>
+</div>
+
+<!-- CHART 4: Engagement -->
+<h2 class="section-title">4. Engagement Metrics Trend</h2>
+<div class="two-col">
+<div class="card">
+  <h2>Bounce Rate (lower is better)</h2>
+  <div class="chart-container"><canvas id="chart4a"></canvas></div>
+</div>
+<div class="card">
+  <h2>Avg Session Duration (higher is better)</h2>
+  <div class="chart-container"><canvas id="chart4b"></canvas></div>
+</div>
+</div>
+<div class="card">
+  <div class="insight positive">
+    <strong>Positive Signal:</strong> Week 5 shows the best engagement metrics of the entire period: bounce rate 69.3% (vs 77.7% in W1) and session duration 151.2s (vs 83.7s in W1, a 81% increase).
+    This aligns with AEO improvements: fewer low-quality articles, faster page loads (hero image fix, script deferral), cleaner schema.
+    The users who remain are more engaged &mdash; classic quality-over-quantity pattern.
+  </div>
+</div>
+
+<!-- CHART 5: Conversions -->
+<h2 class="section-title">5. Conversion Events</h2>
+<div class="card">
+  <h2>Click_to_Cloud + form_trial + form_demo</h2>
+  <div class="desc">Note: Major tracking disruption detected on March 18</div>
+  <div class="chart-container"><canvas id="chart5"></canvas></div>
+  <div class="insight warning">
+    <strong>Data Quality Alert:</strong> Click_to_Cloud events dropped from ~900-1,100/day to near-zero after Mar 18. form_trial events disappeared entirely after Mar 17.
+    This is almost certainly a GTM configuration change (coincides with GTM consolidation from 2&rarr;1 container), not a real conversion decline.
+    <strong>Action needed:</strong> Verify GTM event tracking is properly configured in the single remaining container (GTM-TPX49SBK).
+  </div>
+</div>
+
+<!-- CHART 6: Section Breakdown -->
+<h2 class="section-title">6. Section Traffic Breakdown (Weekly)</h2>
+<div class="card">
+  <h2>Pageviews by Section per Week</h2>
+  <div class="chart-container"><canvas id="chart6"></canvas></div>
+  <div class="insight">
+    <strong>Finding:</strong> Blog dominates all sections but its share is declining post-pruning. Product (/tidb/) traffic remained stable (~1,000-1,100 PV/week) throughout all AEO changes.
+    /ai/ page showed resilience and even spikes. Compare, glossary, developers hub, and FAQ pages are growing from a small base. The /developers/ hub spiked to 101 PV on Mar 12 (launch day) and settled to ~8 PV/day.
+  </div>
+</div>
+
+<!-- CHART 7: Correlations -->
+<h2 class="section-title">7. Statistical Correlations</h2>
+<div class="card">
+<h2>Correlation Matrix (Weekly AEO Score vs. Traffic Metrics)</h2>
+<div class="desc">Pearson r values computed on N=5 weekly data points. Directional only &mdash; not statistically significant at this sample size.</div>
+<table>
+  <tr><th>X Variable</th><th>Y Variable</th><th>Pearson r</th><th>Strength</th><th>Direction</th><th>Interpretation</th></tr>
+  <tr><td>AEO Score</td><td>Active Users</td><td>-0.57</td><td class="moderate">Moderate</td><td>negative</td><td>Higher AEO correlates with fewer users (likely due to tracking disruption + article pruning, not AEO causing decline)</td></tr>
+  <tr><td>AEO Score</td><td>Bounce Rate</td><td>-0.469</td><td class="weak">Weak</td><td>negative</td><td>Higher AEO correlates with lower bounce rate (positive signal for engagement)</td></tr>
+  <tr><td>AEO Score</td><td>Session Duration</td><td>0.644</td><td class="moderate">Moderate</td><td>positive</td><td>Higher AEO correlates with longer sessions (strongest positive signal)</td></tr>
+  <tr><td>AEO Score</td><td>Conversions</td><td>-0.955</td><td class="strong">Strong</td><td>negative</td><td>Conversion tracking broke Mar 18 &mdash; this correlation is unreliable</td></tr>
+  <tr><td>Compare Pages (#)</td><td>Compare PVs</td><td>-0.846</td><td class="strong">Strong</td><td>negative</td><td>More pages did not immediately drive more traffic (expected: 4-8 week indexing lag)</td></tr>
+  <tr><td>Article Count</td><td>Blog PVs</td><td>0.24</td><td class="negligible">Negligible</td><td>positive</td><td>Fewer articles correlated with less blog traffic, but per-article efficiency improved 20%</td></tr>
+</table>
+</div>
+
+<div class="corr-grid">
+<div class="card">
+  <h2>AEO Score vs. Active Users</h2>
+  <div class="chart-container"><canvas id="scatter1"></canvas></div>
+</div>
+<div class="card">
+  <h2>AEO Score vs. Session Duration</h2>
+  <div class="chart-container"><canvas id="scatter2"></canvas></div>
+</div>
+<div class="card">
+  <h2>AEO Score vs. Bounce Rate</h2>
+  <div class="chart-container"><canvas id="scatter3"></canvas></div>
+</div>
+<div class="card">
+  <h2>Blog PV/Article Efficiency</h2>
+  <div class="chart-container"><canvas id="scatter4"></canvas></div>
+</div>
+</div>
+
+<!-- Methodology -->
+<h2 class="section-title">8. Methodology & Caveats</h2>
+<div class="methodology">
+  <p><strong>Data Sources:</strong> Google Analytics 4 (GA4) via MCP integration. All data pulled on April 12, 2026.</p>
+  <p><strong>Date Range:</strong> March 9 - April 12, 2026 (35 days, 5 weeks).</p>
+  <p><strong>AEO Scores:</strong> From weekly SEO/AEO audit reports conducted on pingcap.com.</p>
+  <p><strong>Statistical Method:</strong> Pearson product-moment correlation coefficient. N=5 (weekly aggregates).</p>
+  <p><strong>Limitations:</strong></p>
+  <ul style="padding-left:20px; margin-top:8px;">
+    <li>N=5 is insufficient for statistical significance. All correlations are directional indicators only.</li>
+    <li>Correlation does not imply causation. Traffic changes may be due to seasonality, marketing campaigns, algorithm updates, or other factors.</li>
+    <li>GTM tracking disruption on Mar 18 renders conversion data unreliable for the full period.</li>
+    <li>SEO changes typically take 4-8 weeks to fully impact organic traffic. This 5-week window may be too short for many improvements.</li>
+    <li>Timezone: GA4 data uses Asia/Shanghai timezone.</li>
+  </ul>
+  <p style="margin-top:12px;"><strong>Generated:</strong> April 12, 2026 at 15:33</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const dates = ["Mar 09", "Mar 10", "Mar 11", "Mar 12", "Mar 13", "Mar 14", "Mar 15", "Mar 16", "Mar 17", "Mar 18", "Mar 19", "Mar 20", "Mar 21", "Mar 22", "Mar 23", "Mar 24", "Mar 25", "Mar 26", "Mar 27", "Mar 28", "Mar 29", "Mar 30", "Mar 31", "Apr 01", "Apr 02", "Apr 03", "Apr 04", "Apr 05", "Apr 06", "Apr 07", "Apr 08", "Apr 09", "Apr 10", "Apr 11", "Apr 12"];
+const users = [15909, 16037, 16598, 23548, 17143, 14691, 17381, 19000, 20341, 18823, 19560, 21757, 22750, 13290, 14217, 15941, 16284, 17072, 18511, 16037, 21027, 25330, 21030, 23580, 9034, 10951, 7801, 9654, 6442, 8074, 8087, 5644, 5483, 3921, 4074];
+const users7d = [15909, 15973, 16181, 18023, 17847, 17321, 17330, 17771, 18386, 18704, 18134, 18793, 19945, 19360, 18677, 18048, 17686, 17330, 16866, 15907, 17013, 18600, 19327, 20370, 19221, 18141, 16965, 15340, 12642, 10791, 8578, 8093, 7312, 6758, 5961];
+const aeo = [3.5, 3.5, 3.5, 4.5, 4.5, 5.0, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5, 8.5];
+const bounce = [76.7, 74.6, 77.0, 80.0, 77.0, 78.4, 80.1, 77.0, 74.9, 77.3, 76.1, 79.9, 83.8, 71.8, 68.1, 71.6, 72.1, 72.4, 72.3, 72.8, 81.6, 79.2, 74.2, 75.8, 72.9, 81.3, 81.2, 84.7, 72.4, 71.5, 72.0, 64.6, 65.2, 67.5, 71.6];
+const bounce7d = [76.7, 75.7, 76.1, 77.1, 77.1, 77.3, 77.7, 77.7, 77.8, 77.8, 77.3, 77.7, 78.4, 77.3, 76.0, 75.5, 74.8, 74.2, 73.2, 71.6, 73.0, 74.6, 74.9, 75.5, 75.5, 76.8, 78.0, 78.5, 77.5, 77.1, 76.6, 75.4, 73.1, 71.1, 69.3];
+const duration = [93.6, 108.0, 95.9, 71.7, 90.3, 72.6, 53.6, 82.3, 101.0, 85.5, 95.0, 74.9, 55.2, 95.5, 124.2, 141.0, 115.9, 126.6, 113.9, 88.4, 55.9, 82.7, 104.0, 83.4, 141.9, 96.5, 92.2, 66.6, 117.9, 128.6, 150.5, 213.9, 174.3, 152.0, 121.0];
+const duration7d = [93.6, 100.8, 99.2, 92.3, 91.9, 88.7, 83.7, 82.1, 81.1, 79.6, 82.9, 80.7, 78.2, 84.2, 90.2, 95.9, 100.2, 104.8, 110.3, 115.1, 109.4, 103.5, 98.2, 93.6, 95.7, 93.3, 93.8, 95.3, 100.4, 103.9, 113.5, 123.7, 134.9, 143.4, 151.2];
+const comparePV = [161, 110, 86, 149, 142, 65, 47, 58, 137, 68, 95, 34, 76, 87, 66, 96, 118, 101, 119, 56, 90, 90, 125, 127, 71, 48, 47, 69, 63, 96, 154, 92, 64, 46, 59];
+const comparePages = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10];
+const blogPV = [2806, 2663, 2654, 2600, 2655, 2711, 2793, 3078, 2915, 2880, 2955, 2814, 3123, 3113, 3265, 3151, 3268, 3528, 3276, 3136, 6653, 7168, 6270, 7788, 1274, 968, 816, 1138, 1040, 1112, 852, 749, 780, 670, 609];
+const articles = [943, 943, 943, 943, 943, 943, 943, 943, 943, 943, 943, 943, 943, 943, 560, 560, 560, 560, 560, 560, 560, 242, 242, 242, 242, 242, 242, 242, 242, 242, 242, 242, 242, 242, 242];
+const c2c = [961, 1098, 980, 903, 986, 801, 923, 1187, 743, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const trial = [228, 335, 239, 252, 280, 256, 245, 291, 167, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const demo = [2, 4, 0, 2, 2, 1, 3, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const wLabels = ["W1: Foundation", "W2: Schema+Hero", "W3: Content Cleanup", "W4: Major Cleanup", "W5: Stabilization"];
+const wCompare = [760, 555, 646, 577, 574];
+const wBlog = [18882, 20878, 26277, 25422, 5812];
+const wTidb = [1149, 1029, 1031, 839, 813];
+const wAi = [440, 457, 528, 339, 637];
+const wGlossary = [12, 2, 32, 2, 2];
+const wFaqs = [23, 10, 7, 13, 19];
+const wDevhub = [212, 83, 43, 42, 58];
+const wAeo = [6.5, 7.5, 8.0, 8.5, 8.5];
+const wUsers = [121307, 135521, 119089, 107380, 41725];
+const wBounce = [77.7, 77.3, 73.0, 78.5, 69.3];
+const wDuration = [83.7, 84.2, 109.4, 95.3, 151.2];
+const wBlogPerArticle = [20.0, 22.1, 46.9, 105.0, 24.0];
+
+const blue='rgba(46,117,182,0.8)', orange='rgba(245,158,11,0.8)', red='rgba(220,38,38,0.7)',
+      green='rgba(34,197,94,0.7)', purple='rgba(139,92,246,0.7)', gray='rgba(156,163,175,0.5)';
+const blueLight='rgba(46,117,182,0.1)', orangeLight='rgba(245,158,11,0.1)';
+
+function milestoneAnnotations() {
+  const ms = [{"date": "2026-03-09", "label": "Baseline", "score": 3.5}, {"date": "2026-03-12", "label": "AI bot rules added", "score": 4.5}, {"date": "2026-03-14", "label": "llms.txt confirmed", "score": 5.0}, {"date": "2026-03-15", "label": "Glossary + authors", "score": 6.5}, {"date": "2026-03-18", "label": "GTM tracking change", "score": 6.5}, {"date": "2026-03-22", "label": "Schema + hero + GTM", "score": 7.5}, {"date": "2026-03-29", "label": "Article cleanup (943\u2192560)", "score": 8.0}, {"date": "2026-04-06", "label": "Major cleanup (560\u2192242)", "score": 8.5}, {"date": "2026-04-12", "label": "Current", "score": 8.5}];
+  const annots = {};
+  ms.forEach((m,i) => {
+    const d = new Date(m.date);
+    const label = dates[Math.floor((d - new Date('2026-03-09')) / 86400000)] || '';
+    if (label) {
+      annots['line'+i] = { type:'line', xMin:label, xMax:label, borderColor:'rgba(245,158,11,0.4)', borderWidth:1, borderDash:[4,4],
+        label:{ display:i%2===0, content:m.label, position:'start', font:{size:9}, backgroundColor:'rgba(245,158,11,0.1)' } };
+    }
+  });
+  return annots;
+}
+
+// Chart 1: Overall Traffic + AEO
+new Chart('chart1', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'Active Users', data:users, borderColor:blue, backgroundColor:blueLight, fill:true, tension:0.3, yAxisID:'y', pointRadius:2 },
+    { label:'7-Day Avg', data:users7d, borderColor:'rgba(46,117,182,0.4)', borderDash:[5,5], fill:false, tension:0.3, yAxisID:'y', pointRadius:0 },
+    { label:'AEO Score', data:aeo, borderColor:orange, backgroundColor:'transparent', stepped:true, yAxisID:'y1', pointRadius:0, borderWidth:3 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+  scales:{ y:{position:'left',title:{display:true,text:'Active Users'}}, y1:{position:'right',min:0,max:10,title:{display:true,text:'AEO Score'},grid:{display:false}} },
+  plugins:{ annotation:{ annotations: milestoneAnnotations() } }
+} });
+
+// Chart 2: Compare
+new Chart('chart2', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'/compare/* PVs', data:comparePV, borderColor:blue, fill:false, tension:0.3, yAxisID:'y', pointRadius:2 },
+    { label:'# Compare Pages', data:comparePages, borderColor:orange, stepped:true, yAxisID:'y1', pointRadius:0, borderWidth:3 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false,
+  scales:{ y:{position:'left',title:{display:true,text:'Pageviews'}}, y1:{position:'right',min:0,max:12,title:{display:true,text:'# Pages'},grid:{display:false}} }
+} });
+
+// Chart 3: Blog
+new Chart('chart3', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'/blog/* PVs', data:blogPV, borderColor:blue, backgroundColor:blueLight, fill:true, tension:0.3, yAxisID:'y', pointRadius:2 },
+    { label:'Articles in Sitemap', data:articles, borderColor:red, stepped:true, yAxisID:'y1', pointRadius:0, borderWidth:3 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false,
+  scales:{ y:{position:'left',title:{display:true,text:'Daily Pageviews'}}, y1:{position:'right',min:0,max:1000,title:{display:true,text:'Articles'},grid:{display:false}} }
+} });
+
+// Chart 4a: Bounce Rate
+new Chart('chart4a', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'Bounce Rate %', data:bounce, borderColor:red, fill:false, tension:0.3, pointRadius:2 },
+    { label:'7-Day Avg', data:bounce7d, borderColor:'rgba(220,38,38,0.3)', borderDash:[5,5], fill:false, tension:0.3, pointRadius:0 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{min:60,max:90,title:{display:true,text:'Bounce Rate %'}} } } });
+
+// Chart 4b: Duration
+new Chart('chart4b', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'Avg Duration (s)', data:duration, borderColor:green, fill:false, tension:0.3, pointRadius:2 },
+    { label:'7-Day Avg', data:duration7d, borderColor:'rgba(34,197,94,0.3)', borderDash:[5,5], fill:false, tension:0.3, pointRadius:0 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{min:40,max:220,title:{display:true,text:'Seconds'}} } } });
+
+// Chart 5: Conversions
+new Chart('chart5', { type:'line', data:{ labels:dates,
+  datasets:[
+    { label:'Click_to_Cloud', data:c2c, borderColor:blue, fill:false, tension:0.3, pointRadius:2 },
+    { label:'form_trial', data:trial, borderColor:green, fill:false, tension:0.3, pointRadius:2 },
+    { label:'form_demo', data:demo, borderColor:purple, fill:false, tension:0.3, pointRadius:2 },
+  ]}, options:{ responsive:true, maintainAspectRatio:false,
+  plugins:{ annotation:{ annotations:{ line1:{ type:'line', xMin:'Mar 18', xMax:'Mar 18', borderColor:'red', borderWidth:2, borderDash:[4,4],
+    label:{ display:true, content:'GTM Tracking Disruption', position:'start', font:{size:11}, backgroundColor:'rgba(220,38,38,0.1)' } } } } }
+} });
+
+// Chart 6: Section Breakdown
+new Chart('chart6', { type:'bar', data:{ labels:wLabels,
+  datasets:[
+    { label:'/blog/', data:wBlog, backgroundColor:blue },
+    { label:'/tidb/', data:wTidb, backgroundColor:green },
+    { label:'/compare/', data:wCompare, backgroundColor:orange },
+    { label:'/ai/', data:wAi, backgroundColor:purple },
+    { label:'/faqs/', data:wFaqs, backgroundColor:'rgba(236,72,153,0.7)' },
+    { label:'/glossary/', data:wGlossary, backgroundColor:gray },
+    { label:'/developers/', data:wDevhub, backgroundColor:'rgba(14,165,233,0.7)' },
+  ]}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{title:{display:true,text:'Weekly Pageviews'}} } } });
+
+// Scatter plots
+function scatter(id, xs, ys, xLabel, yLabel, r, wLabels) {
+  new Chart(id, { type:'scatter', data:{ datasets:[{
+    data: xs.map((x,i) => ({x, y:ys[i]})),
+    backgroundColor: blue, pointRadius: 8,
+    pointHoverRadius: 12,
+  }]}, options:{ responsive:true, maintainAspectRatio:false,
+    scales:{ x:{title:{display:true,text:xLabel}}, y:{title:{display:true,text:yLabel}} },
+    plugins:{ legend:{display:false},
+      annotation:{ annotations:{ rLabel:{ type:'label', xValue:xs[0], yValue:ys[0],
+        content:'r = '+r, font:{size:16,weight:'bold'}, color: Math.abs(r)>0.5 ? '#16a34a' : '#d97706' } } }
+    }
+  } });
+}
+scatter('scatter1', wAeo, wUsers, 'AEO Score', 'Active Users', '-0.57', wLabels);
+scatter('scatter2', wAeo, wDuration, 'AEO Score', 'Avg Duration (s)', '0.644', wLabels);
+scatter('scatter3', wAeo, wBounce, 'AEO Score', 'Bounce Rate %', '-0.469', wLabels);
+scatter('scatter4', [1,2,3,4,5], wBlogPerArticle, 'Week', 'PV per Article', '0.399', wLabels);
+</script>
+</body>
+</html>

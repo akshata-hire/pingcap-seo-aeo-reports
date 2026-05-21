@@ -1,0 +1,35 @@
+id,severity,category,description,identified_date,status,resolved_date,notes
+1,CRITICAL,AEO,No /what-is-tidb/ definitional page,2026-03-09,RESOLVED,2026-04-30,LIVE — ~3000 words 7 H2s FAQ block. Closed 6-week gap.
+2,CRITICAL,Schema,FAQPage schema sitewide (non-compliant),2026-03-09,RESOLVED,2026-04-06,Removed from all pages. Compliance restored.
+3,CRITICAL,Sitemap,943 mass-generated articles in sitemap,2026-03-09,RESOLVED,2026-04-06,Reduced to 242 (74% removed). Remaining 242 may need quality audit.
+4,CRITICAL,Performance,All images use JS data-src (LCP killer),2026-03-09,PARTIAL,2026-04-30,Hero fixed Mar 22; 10 of 27 still data-src.
+5,CRITICAL,Performance,11 render-blocking scripts in head,2026-03-09,PARTIAL,2026-04-06,Reduced to 5. 6 deferred.
+6,CRITICAL,Performance,master.js 1.14 MB no caching,2026-03-09,RESOLVED,2026-03-15,immutable cache headers on static.pingcap.com.
+7,CRITICAL,Visual,Cookie banner blocks mobile CTAs,2026-03-09,OPEN,,Not yet addressed.
+8,CRITICAL,Visual,Hero video gated behind cookie consent,2026-03-09,OPEN,,Same as #7.
+9,CRITICAL,Schema,No Article schema on blog posts,2026-03-09,RESOLVED,2026-03-22,Yoast Article schema with author + dates.
+10,CRITICAL,Sitemap,Schema is sitewide template injection (no page-specific),2026-03-09,RESOLVED,2026-04-06,Schema scoped per page now.
+11,HIGH,Performance,Dual GTM containers,2026-03-09,RESOLVED,2026-03-22,Single GTM-TPX49SBK.
+12,HIGH,Technical,Zero security headers enforced,2026-03-09,PARTIAL,2026-03-15,5/7 added by Mar 15; 6/7 by Apr 30. CSP still report-only.
+13,HIGH,Performance,58 of 75 images lack width/height,2026-03-09,PARTIAL,2026-04-30,Improved on key pages.
+14,HIGH,Performance,Zero WebP/AVIF images,2026-03-09,PARTIAL,2026-04-30,Hero is WebP. Most others still PNG.
+15,HIGH,Content,About page missing founder/leadership,2026-03-09,OPEN,,Still missing as of Apr 30.
+16,HIGH,Content,Blog posts use generic TiDB Team author,2026-03-09,RESOLVED,2026-03-15,Real named authors with Person schema.
+17,HIGH,Content,Product page thin (1151 words),2026-03-09,OPEN,,Not addressed.
+18,HIGH,Visual,Pricing page horizontal scroll on mobile,2026-03-09,OPEN,,Not re-tested.
+19,HIGH,Schema,No standalone Organization schema,2026-03-09,RESOLVED,2026-03-22,Organization schema on homepage.
+20,MEDIUM,Visual,Mobile logo 1px placeholder,2026-03-09,OPEN,,Not re-tested.
+21,MEDIUM,AEO,No AI-specific robots.txt rules,2026-03-09,RESOLVED,2026-03-15,5 explicit bot allows.
+22,MEDIUM,Schema,No VideoObject schema on /videos/,2026-03-09,OPEN,,Not addressed.
+23,MEDIUM,Sitemap,Old event pages in sitemap (35 stale 2022-2023),2026-03-09,OPEN,,Not addressed.
+24,MEDIUM,AEO,No /compare/ hub page,2026-03-09,PARTIAL,,301 redirect only — 11 pages still need a real hub landing.
+25,MEDIUM,AEO,Limited comparison coverage (4 pages),2026-03-09,RESOLVED,2026-04-30,Now 11 comparison pages — most in space.
+26,MEDIUM,AEO,No glossary pages,2026-03-09,RESOLVED,2026-03-15,17-term glossary on /glossary/.
+27,MEDIUM,Sitemap,8 thank-you pages in sitemap,2026-03-09,RESOLVED,2026-03-15,Noindexed and removed from sitemap.
+28,MEDIUM,Schema,AggregateRating sitewide,2026-03-09,RESOLVED,2026-03-29,Scoped to /tidb/ only.
+29,MEDIUM,Content,Thin solution page coverage (6 pages),2026-03-09,OPEN,,Not addressed.
+30,MEDIUM,Technical,No hreflang tags,2026-03-09,OPEN,,Not addressed.
+31,MEDIUM,On-Page,Missing OG/Twitter tags on product pages,2026-03-09,RESOLVED,2026-03-22,OG tags on /tidb/cloud/ /ai/ etc.
+32,LOW,AEO,/.well-known/llms.txt 404,2026-03-09,OPEN,,Easy first-mover. Nobody has it.
+33,LOW,Technical,CSP still report-only,2026-03-09,OPEN,,Not enforced.
+34,LOW,Content,Product page tone issues,2026-03-09,OPEN,,Not addressed.
