@@ -135,7 +135,11 @@
       "Bash(base64 -i \"/Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/reports-archive/progress-reports/brand-authority-audit-2026-05-14.docx\")",
       "Read(//tmp/**)",
       "Bash(cat /tmp/brand_authority_b64.txt)",
-      "Bash(python3)"
+      "Bash(python3)",
+      "Bash(gh auth *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
