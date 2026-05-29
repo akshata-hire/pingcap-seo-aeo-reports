@@ -1,25 +1,135 @@
 // ─── WEEKLY UPDATE CHECKLIST ──────────────────────────────────────────────────
-// When copying this template for a new report, update ALL of the following:
-//
-// 1. DATE STRINGS — search "April 30" and "Apr 30" and replace with new date
-// 2. SCORES — AEO score, SEO Health score (title bar line ~30)
-// 3. BASELINE — prior week date and scores (line ~31)
-// 4. HEADLINE section — replace with this week's key achievement
-// 5. IMPROVEMENTS table — replace with this week's improvements
-// 6. REGRESSIONS table — replace with this week's regressions
-// 7. SCORING TABLE — use updated 8-category weights:
-//    Technical SEO 19%, Content Quality 19%, On-Page SEO 18%,
-//    AI Search Readiness 15%, Brand Authority 12%, Schema 10%,
-//    Performance 4%, Visual/Mobile 3%
-// 8. ITEMS STILL OPEN — update counts and list
-// 9. PROGRESS ARC — append new row, keep last 8 weeks
-// 10. TOP 3 ACTIONS — replace with this week's recommendations
-// 11. OUTPUT PATH — update the filename date at the bottom (or set REPORT_OUT env var)
-//
-// DO NOT leave any "April 30" or "Apr 30" references in the copied file.
+// ONLY EDIT THE DATA OBJECT BELOW (lines 20–120)
+// Do NOT touch anything below the "DO NOT EDIT BELOW" line
+// Run: node templates/gen-progress-docx.js
 // ──────────────────────────────────────────────────────────────────────────────
 
-const fs=require("fs");const{Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,Header,Footer,AlignmentType,LevelFormat,HeadingLevel,BorderStyle,WidthType,ShadingType,PageNumber,PageBreak}=require("docx");
+const fs = require("fs");
+const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  Header, Footer, AlignmentType, HeadingLevel, BorderStyle, WidthType,
+  ShadingType, PageNumber, PageBreak } = require("docx");
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EDIT THIS DATA OBJECT EACH WEEK — nothing else needs changing
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const DATA = {
+
+  // ── Dates & scores ──────────────────────────────────────────────────────────
+  reportDate:     "May 26, 2026",          // e.g. "May 26, 2026"
+  baselineDate:   "May 13, 2026",          // prior week date
+  aeoScore:       "9.0",                   // current AEO score /10
+  seoScore:       "82",                    // current SEO Health /100
+  criticalCount:  0,                       // open critical items
+  baselineAeo:    "9.0",                   // prior week AEO
+  baselineSeo:    "82",                    // prior week SEO
+  baselineCritical: 0,                     // prior week critical count
+
+  // ── Headline ─────────────────────────────────────────────────────────────────
+  headlineTitle:  "Headline: [Replace with this week's key achievement]",
+  headlineBody:   "[Describe the main achievement this week in 2-3 sentences. What changed, what it means for AI/SEO, and why it matters.]",
+
+  // ── Improvements table — add/remove rows as needed ──────────────────────────
+  // Format: ["#", "description (use ✅ prefix)", "impact level", "evidence"]
+  improvements: [
+    ["1", "✅ [Improvement 1]", "HIGH", "[Evidence from audit]"],
+    ["2", "✅ [Improvement 2]", "MEDIUM", "[Evidence from audit]"],
+  ],
+
+  // ── Regressions table ────────────────────────────────────────────────────────
+  // Format: ["#", "description (use ⚠️ prefix)", "impact level", "notes"]
+  regressions: [
+    ["R1", "⚠️ [Regression 1]", "MEDIUM", "[What happened and what to investigate]"],
+  ],
+
+  // ── Scoring table (8 categories — DO NOT change weights) ────────────────────
+  // Format: ["Category", "Weight", "Prior score", "This week score", "Delta + notes"]
+  // Weights are locked: 19/19/18/15/12/10/4/3
+  scoring: [
+    ["Technical SEO",              "19%", "XX", "XX", "[delta and reason]"],
+    ["Content Quality",            "19%", "XX", "XX", "[delta and reason]"],
+    ["On-Page SEO",                "18%", "XX", "XX", "[delta and reason]"],
+    ["AI Search Readiness",        "15%", "XX", "XX", "[delta and reason]"],
+    ["Brand Authority & Backlinks","12%", "XX", "XX", "[delta — use last brand-authority-pull.js snapshot]"],
+    ["Schema",                     "10%", "XX", "XX", "[delta and reason]"],
+    ["Performance",                 "4%", "XX", "XX", "[TTFB reading]"],
+    ["Visual/Mobile",               "3%", "XX", "XX", "Not re-tested / [result]"],
+  ],
+  scoringWeightedPrior: "~82",
+  scoringWeightedCurrent: "~82",
+  scoringWeightedDelta: "+0 — [summary of week]",
+
+  // ── Open items — fill from Prompt 1 resolution table ────────────────────────
+  openCritical: [
+    // ["#", "Issue", "Since", "Notes"]
+    // Leave empty array [] if none
+  ],
+  openHigh: [
+    ["1", "242 articles remain in article-sitemap", "Mar 9", "74% removed (943→242). Last big content-quality lever"],
+  ],
+  openMedium: [
+    ["2", "No /compare/ hub page", "Mar 23", "11 pages now without central landing"],
+    ["3", "Glossary at 49 terms (target 50+)", "Mar 23", "CockroachDB has 50+. 1 away from target"],
+    ["4", "About page missing leadership", "Mar 9", "No founders/CEO/investors"],
+    ["5", "CSP header dropped", "May 13", "Was report-only, now completely absent — regression"],
+    ["6", "/.well-known/llms.txt still 404", "Mar 9", "Root llms.txt is 200; well-known path is extra coverage"],
+  ],
+  openLow: [
+    ["7", "/.well-known/llms.txt still 404", "Mar 9", "Easy first-mover when fixed"],
+  ],
+
+  // ── Resolved this week ───────────────────────────────────────────────────────
+  resolvedThisWeek: [
+    // ["#", "Item", "Evidence"]
+    // ["1", "data-src images fixed", "Signal 15: 0 (was 10)"],
+  ],
+
+  // ── 8-week progress arc — append new row each week, keep last 8 ─────────────
+  // Format: ["Date", "AEO", "SEO", "Articles", "Critical", "Key Achievement"]
+  progressArc: [
+    ["Mar 9",  "3.5",  "52",  "943", "10", "Baseline (34 items)"],
+    ["Mar 15", "~6.5", "68",  "943",  "7", "Security, AI rules, glossary"],
+    ["Mar 22", "~7.5", "67",  "943",  "6", "Schema, hero, GTM"],
+    ["Mar 29", "8.0",  "~67", "560",  "5", "Article cleanup begins"],
+    ["Apr 6",  "8.5",  "~75", "242",  "3", "Major cleanup sprint"],
+    ["Apr 12", "8.5",  "~77", "242",  "2", "Cache correction"],
+    ["Apr 19", "8.5",  "~78", "242",  "1", "Homepage AI-Agents repositioning"],
+    ["Apr 30", "9.0",  "~82", "242",  "0", "/what-is-tidb/ LIVE — zero criticals"],
+    ["May 13", "9.0",  "~82", "242",  "0", "TTFB recovered 265ms→101ms. CSP dropped."],
+    ["May 26", "9.0",  "~82", "242",  "0", "[This week's key achievement]"],
+  ],
+
+  // ── Cumulative stats ─────────────────────────────────────────────────────────
+  // Format: ["Metric", "Mar 9 value", "Current value", "Change"]
+  cumulativeStats: [
+    ["Items fixed (of 34)",      "0",     "23",               "68%"],
+    ["Critical remaining",       "10",    "0",                "-100%"],
+    ["Mass-gen articles",        "943",   "242",              "-74%"],
+    ["Render-blocking scripts",  "11",    "5",                "-55%"],
+    ["Security headers",         "0/7",   "5/7",              "+5 (CSP regression)"],
+    ["Comparison pages",         "4",     "11",               "+175%"],
+    ["Glossary terms",           "0",     "49",               "NEW"],
+    ["/what-is-tidb/ page",      "404",   "LIVE — 3K words",  "NEW"],
+    ["AEO Score",                "3.5/10","9.0/10",           "+157%"],
+  ],
+
+  // ── Top 3 actions ────────────────────────────────────────────────────────────
+  // Format: ["#", "Action", "Impact", "Effort"]
+  topActions: [
+    ["1", "Restore CSP header — was report-only Apr 30, now completely absent", "Security + trust signal", "30 min (infra)"],
+    ["2", "Push glossary to 50+ terms — 1 term away from matching CockroachDB", "AEO competitive parity", "1–2 hours"],
+    ["3", "Push 12th comparison page — stalled at 11 for 2 consecutive audits", "AEO score improvement", "1 day"],
+  ],
+
+  // ── Output path ──────────────────────────────────────────────────────────────
+  outputPath: process.env.REPORT_OUT ||
+    "/Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/reports-archive/progress-reports/pingcap-seo-aeo-progress-2026-05-26.docx",
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DO NOT EDIT BELOW THIS LINE — rendering engine
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const PW=12240,ML=1260,MR=1260;
 const bd={style:BorderStyle.SINGLE,size:1,color:"CCCCCC"};
 const bs={top:bd,bottom:bd,left:bd,right:bd};
@@ -31,161 +141,146 @@ function n(t,o={}){return new TextRun({text:t,font:"Arial",size:20,...o})}
 function sm(t,o={}){return new TextRun({text:t,font:"Arial",size:18,...o})}
 function hc(t,w){return new TableCell({borders:bs,width:{size:w,type:WidthType.DXA},shading:{fill:C.hb,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({children:[b(t,{color:C.ht,size:18})]})]})}
 function dc(ch,w,o={}){return new TableCell({borders:bs,width:{size:w,type:WidthType.DXA},shading:o.f?{fill:o.f,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({spacing:{before:20,after:20},children:Array.isArray(ch)?ch:[n(ch)]})]})}
-function tbl(hds,rows,cw){return new Table({width:{size:cw.reduce((a,c)=>a+c,0),type:WidthType.DXA},columnWidths:cw,rows:[new TableRow({children:hds.map((h,i)=>hc(h,cw[i]))}),...rows.map(r=>new TableRow({children:r.map((c,i)=>{if(typeof c==="object"&&c._f)return dc(c.ch||[n(c.t||"")],cw[i],{f:c._f});return dc(c,cw[i])})}))]})}
+function tbl(hds,rows,cw){return new Table({width:{size:cw.reduce((a,c)=>a+c,0),type:WidthType.DXA},columnWidths:cw,rows:[new TableRow({children:hds.map((h,i)=>hc(h,cw[i]))}),...rows.map(r=>new TableRow({children:r.map((c,i)=>{if(typeof c==="object"&&c._f)return dc(c.ch||[n(c.t||"")],cw[i],{f:c._f});return dc(c,cw[i])})}))]});}
 function h1(t){return new Paragraph({heading:HeadingLevel.HEADING_1,spacing:{before:300,after:160},children:[new TextRun({text:t,bold:true,font:"Arial",size:28,color:C.hd})]})}
 function h2(t){return new Paragraph({heading:HeadingLevel.HEADING_2,spacing:{before:240,after:120},children:[new TextRun({text:t,bold:true,font:"Arial",size:24,color:C.sb})]})}
 function sp(){return new Paragraph({spacing:{after:80},children:[]})}
 function para(...r){return new Paragraph({spacing:{before:60,after:100},children:r})}
 function g(t){return{t,ch:[b(t,{size:18,color:C.fx})],_f:C.fb}}
-function r(t){return{t,ch:[b(t,{size:18,color:C.cr})],_f:C.cb}}
-function o(t){return{t,ch:[b(t,{size:18,color:C.hi})],_f:C.hib}}
+function rr(t){return{t,ch:[b(t,{size:18,color:C.cr})],_f:C.cb}}
+function oo(t){return{t,ch:[b(t,{size:18,color:C.hi})],_f:C.hib}}
 
-const p=[];
+// Helper to wrap improvement/regression text with colour
+function impCell(text) {
+  return text.startsWith("✅") ? g(text) : text.startsWith("⚠️") ? oo(text) : text;
+}
 
-// Title
+const p = [];
+
+// ── Title page ────────────────────────────────────────────────────────────────
 p.push(sp(),sp(),sp());
 p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:80},children:[new TextRun({text:"PingCAP.com",font:"Arial",size:44,bold:true,color:C.hd})]}));
 p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:120},children:[new TextRun({text:"SEO / AEO Progress Report",font:"Arial",size:36,bold:true,color:C.ac})]}));
-p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},children:[new TextRun({text:"April 30, 2026",font:"Arial",size:24,color:C.mu})]}));
+p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},children:[new TextRun({text:DATA.reportDate,font:"Arial",size:24,color:C.mu})]}));
 p.push(sp());
-p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:40},children:[b("AEO: 9.0/10  |  SEO Health: 82/100  |  0 Critical Items Open",{color:C.fx,size:28})]}));
-p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:40},children:[n("Baseline: April 19 (AEO 8.5, SEO 78, 1 Critical)",{color:C.mu})]}));
-p.push(new Paragraph({alignment:AlignmentType.CENTER,children:[n("\uD83C\uDF89  6-week critical gap closed: /what-is-tidb/ is LIVE",{color:C.fx,italics:true})]}));
+p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:40},children:[b(`AEO: ${DATA.aeoScore}/10  |  SEO Health: ${DATA.seoScore}/100  |  ${DATA.criticalCount} Critical Items Open`,{color:DATA.criticalCount===0?C.fx:C.cr,size:28})]}));
+p.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:40},children:[n(`Baseline: ${DATA.baselineDate} (AEO ${DATA.baselineAeo}, SEO ${DATA.baselineSeo}, ${DATA.baselineCritical} Critical)`,{color:C.mu})]}));
 p.push(new Paragraph({children:[new PageBreak()]}));
 
-// Headline
-p.push(h1("\uD83C\uDF89 Headline: 6-Week Critical Gap Closed"));
-p.push(para(b("/what-is-tidb/ is now LIVE. ",{color:C.fx}),n("This page has been the #1 recommended action for 6 consecutive audits since March 9. It now returns 200 with a 2,800\u20133,000 word definitional article featuring 7 H2 sections, a FAQ block, and a clear definitional sentence:")));
-p.push(new Paragraph({spacing:{before:80,after:120},shading:{fill:C.fb,type:ShadingType.CLEAR},border:{left:{style:BorderStyle.SINGLE,size:24,color:C.fx,space:8}},children:[n("\u201CTiDB is an open-source, distributed SQL database that supports Hybrid Transactional and Analytical Processing (HTAP) workloads.\u201D",{italics:true,size:22})]}));
-p.push(para(b("This is the canonical AI citation page. ",{color:C.ac}),n("Combined with the existing AI bot rules in robots.txt, the llms.txt file, and the homepage \u201CDatabase for AI Agents\u201D positioning, AI assistants (ChatGPT, Claude, Perplexity, Copilot) now have a single authoritative URL to cite when answering \u201CWhat is TiDB?\u201D queries.")));
-
+// ── Headline ──────────────────────────────────────────────────────────────────
+p.push(h1(`🏆 ${DATA.headlineTitle}`));
+p.push(para(n(DATA.headlineBody)));
 p.push(new Paragraph({children:[new PageBreak()]}));
 
-// Changes
-p.push(h1("Changes Since Apr 19"));
-p.push(h2("Improvements (3)"));
+// ── Changes ───────────────────────────────────────────────────────────────────
+p.push(h1(`Changes Since ${DATA.baselineDate}`));
 const chw=[500,3500,1700,4020];
-p.push(tbl(["#","Change","Impact","Evidence"],
-[
-  ["1",g("/what-is-tidb/ page LIVE"),"CRITICAL","200 OK; ~3K words; 7 H2 sections; FAQ; clear definition"],
-  ["2",g("Hero fetchpriority RESTORED"),"HIGH","2 fetchpriority instances detected (was 0 on Apr 19)"],
-  ["3",g("+1 comparison page"),"MEDIUM","/compare/tidb-vs-postgresql-2026-comparison-guide/ live (11th page)"],
-],chw));
 
-p.push(sp());
-p.push(h2("Soft Regression (1) \u2014 Worth Monitoring"));
-p.push(tbl(["#","Item","Impact","Notes"],
-[
-  ["R1",o("TTFB slowed: 85ms \u2192 265ms"),"MEDIUM","3\u00d7 slower. Could affect LCP if persistent. Could be CDN cache miss timing"],
-],chw));
+if(DATA.improvements.length>0){
+  p.push(h2(`Improvements (${DATA.improvements.length})`));
+  p.push(tbl(["#","Change","Impact","Evidence"],DATA.improvements.map(r=>[r[0],impCell(r[1]),r[2],r[3]]),chw));
+  p.push(sp());
+}
 
-p.push(new Paragraph({children:[new PageBreak()]}));
-
-// Scoring
-p.push(h1("Scoring: Apr 19 \u2192 Apr 30"));
-const scw=[2200,1100,1100,800,3220];
-p.push(tbl(["Category","Weight","Apr 19","Apr 30","Delta + Notes"],
-[
-  ["Technical SEO","25%","82",g("85"),g("+3 \u2014 /what-is-tidb/ fills gap; TTFB \u22121")],
-  ["Content Quality","25%","74",g("82"),g("+8 \u2014 3K-word definitional page; +1 comparison")],
-  ["On-Page SEO","20%","75",g("78"),g("+3 \u2014 New page well-structured")],
-  ["Schema","10%","65","65","Stable. Add Article schema to /what-is-tidb/"],
-  ["Performance","10%","66",g("68"),g("+2 \u2014 fetchpriority restored")],
-  ["Visual/Mobile","5%","62","62","Not re-tested"],
-  ["AI Search Readiness","5%","73",g("82"),g("+9 \u2014 Canonical AI citation page now exists")],
-  [{t:"Weighted Total",ch:[b("Weighted Total",{size:18})],_f:C.lb},{t:"",_f:C.lb},{t:"~78",ch:[b("~78",{size:18})],_f:C.lb},{t:"~82",ch:[b("~82",{size:18,color:C.fx})],_f:C.fb},{t:"+4 \u2014 Strongest WoW gain since Mar 22",_f:C.fb}],
-],scw));
+if(DATA.regressions.length>0){
+  p.push(h2(`Regressions (${DATA.regressions.length})`));
+  p.push(tbl(["#","Item","Impact","Notes"],DATA.regressions.map(r=>[r[0],impCell(r[1]),r[2],r[3]]),chw));
+  p.push(sp());
+}
 
 p.push(new Paragraph({children:[new PageBreak()]}));
 
-// Items still open
+// ── Scoring ───────────────────────────────────────────────────────────────────
+p.push(h1(`Scoring: ${DATA.baselineDate} → ${DATA.reportDate}`));
+const scw=[2200,800,1100,1100,3220];
+const scoringRows = DATA.scoring.map(r=>[r[0],r[1],r[2],r[3],r[4]]);
+scoringRows.push([
+  {t:"Weighted Total",ch:[b("Weighted Total",{size:18})],_f:C.lb},
+  {t:"",_f:C.lb},
+  {t:DATA.scoringWeightedPrior,ch:[b(DATA.scoringWeightedPrior,{size:18})],_f:C.lb},
+  {t:DATA.scoringWeightedCurrent,ch:[b(DATA.scoringWeightedCurrent,{size:18,color:C.fx})],_f:C.fb},
+  {t:DATA.scoringWeightedDelta,_f:C.fb}
+]);
+p.push(tbl(["Category","Weight","Prior","This Week","Delta + Notes"],scoringRows,scw));
+p.push(new Paragraph({children:[new PageBreak()]}));
+
+// ── Open items ────────────────────────────────────────────────────────────────
 p.push(h1("Items Still Open"));
-p.push(h2("\uD83C\uDF89 CRITICAL: 0 \u2014 First time since program began"));
-
-p.push(h2("HIGH (1)"));
 const opw=[500,4500,900,3820];
-p.push(tbl(["#","Issue","Since","Notes"],
-[
-  ["1","242 articles remain in article-sitemap","Mar 9","74% removed (943\u2192242). Last big content-quality lever"],
-],opw));
 
-p.push(h2("MEDIUM (6)"));
-p.push(tbl(["#","Issue","Since","Notes"],
-[
-  ["2","No /compare/ hub page","Mar 23","11 pages now without central landing"],
-  ["3","Glossary at 17 terms (target 25+)","Mar 23","CockroachDB has 50+"],
-  ["4","About page missing leadership","Mar 9","No founders/CEO/investors"],
-  ["5","CSP still report-only","Mar 9","Not enforced"],
-  ["6","10 images still use JS data-src","Apr 12","Down from 24"],
-  ["7","TTFB slowdown 85ms \u2192 265ms","Apr 30","NEW \u2014 monitor"],
-],opw));
+if(DATA.openCritical.length===0){
+  p.push(h2("🎉 CRITICAL: 0"));
+} else {
+  p.push(h2(`CRITICAL (${DATA.openCritical.length})`));
+  p.push(tbl(["#","Issue","Since","Notes"],DATA.openCritical,opw));
+  p.push(sp());
+}
 
-p.push(h2("LOW (2)"));
-p.push(tbl(["#","Issue","Since","Notes"],
-[
-  ["8","/.well-known/llms.txt still 404","Mar 9","Easy first-mover"],
-  ["9","/what-is-tidb/ lacks Article schema","Apr 30","NEW \u2014 add JSON-LD to maximize AI citation"],
-],opw));
+if(DATA.openHigh.length>0){
+  p.push(h2(`HIGH (${DATA.openHigh.length})`));
+  p.push(tbl(["#","Issue","Since","Notes"],DATA.openHigh,opw));
+  p.push(sp());
+}
+
+if(DATA.openMedium.length>0){
+  p.push(h2(`MEDIUM (${DATA.openMedium.length})`));
+  p.push(tbl(["#","Issue","Since","Notes"],DATA.openMedium,opw));
+  p.push(sp());
+}
+
+if(DATA.openLow.length>0){
+  p.push(h2(`LOW (${DATA.openLow.length})`));
+  p.push(tbl(["#","Issue","Since","Notes"],DATA.openLow,opw));
+  p.push(sp());
+}
+
+if(DATA.resolvedThisWeek.length>0){
+  p.push(h2(`✅ Resolved This Week (${DATA.resolvedThisWeek.length})`));
+  p.push(tbl(["#","Item","Evidence"],DATA.resolvedThisWeek,opw.slice(0,3).concat([opw[3]+opw[2]-900])));
+  p.push(sp());
+}
 
 p.push(new Paragraph({children:[new PageBreak()]}));
 
-// 8-week progress
-p.push(h1("8-Week Progress Arc"));
+// ── Progress arc ──────────────────────────────────────────────────────────────
+p.push(h1("Progress Arc"));
 const arcw=[1300,800,800,900,1100,4820];
-p.push(tbl(["Date","AEO","SEO","Articles","Critical","Key Achievement"],
-[
-  ["Mar 9",r("3.5"),r("52"),r("943"),r("10"),"Baseline (34 items)"],
-  ["Mar 15","~6.5","68","943","7","Security, AI rules, glossary"],
-  ["Mar 22","~7.5","67","943","6","Schema, hero, GTM"],
-  ["Mar 29","8.0","~67","560","5","Article cleanup begins"],
-  ["Apr 6","8.5","~75","242","3","Major cleanup sprint"],
-  ["Apr 12","8.5","~77","242","2","Cache correction"],
-  ["Apr 19","8.5","~78","242","1","Homepage AI-Agents repositioning"],
-  [{t:"Apr 30",ch:[b("Apr 30",{size:18})],_f:C.lb},{t:"9.0",ch:[b("9.0",{size:18,color:C.fx})],_f:C.fb},{t:"~82",ch:[b("~82",{size:18,color:C.fx})],_f:C.fb},{t:"242",_f:C.lb},{t:"0",ch:[b("0",{size:18,color:C.fx,bold:true})],_f:C.fb},{t:"/what-is-tidb/ LIVE \u2014 zero criticals",_f:C.fb}],
-],arcw));
+const arcRows = DATA.progressArc.map((r,i)=>{
+  const isLast = i===DATA.progressArc.length-1;
+  return isLast
+    ? [{t:r[0],ch:[b(r[0],{size:18})],_f:C.lb},{t:r[1],ch:[b(r[1],{size:18,color:C.fx})],_f:C.fb},{t:r[2],ch:[b(r[2],{size:18,color:C.fx})],_f:C.fb},{t:r[3],_f:C.lb},{t:r[4],ch:[b(r[4],{size:18,color:r[4]==="0"?C.fx:C.cr})],_f:r[4]==="0"?C.fb:C.cb},{t:r[5],_f:C.fb}]
+    : r;
+});
+p.push(tbl(["Date","AEO","SEO","Articles","Critical","Key Achievement"],arcRows,arcw));
 
 p.push(sp());
-p.push(h2("Cumulative Stats (8 weeks)"));
+p.push(h2("Cumulative Stats (since Mar 9)"));
 const csw=[3500,2000,2000,2220];
-p.push(tbl(["Metric","Mar 9","Apr 30","Change"],
-[
-  ["Items fixed (of 34)","0",g("23"),"68%"],
-  ["Critical remaining","10",g("0"),"-100%"],
-  ["Mass-gen articles","943",g("242"),"-74%"],
-  ["Render-blocking scripts","11",g("5"),"-55%"],
-  ["Security headers","0/7",g("6/7"),"+6"],
-  ["Comparison pages","4",g("11"),"+175%"],
-  ["Homepage schema types","5",g("7"),"+2"],
-  ["/what-is-tidb/ page",r("404"),g("LIVE \u2014 3K words"),"NEW"],
-  ["AEO Score","3.5/10",g("9.0/10"),"+157%"],
-],csw));
+p.push(tbl(["Metric","Mar 9","Current","Change"],DATA.cumulativeStats,csw));
 
 p.push(sp());
 p.push(h2("Top 3 Actions for Next Week"));
 const aw=[500,4500,2000,2720];
-p.push(tbl(["#","Action","Impact","Effort"],
-[
-  ["1","Add JSON-LD Article + FAQPage schema to /what-is-tidb/","Maximize AI citation","1 hour"],
-  ["2","Investigate TTFB slowdown (85ms \u2192 265ms)","Protect LCP","1\u20132 hours"],
-  ["3","Audit remaining 242 articles for thin/duplicate","Last content-quality lever","2\u20133 days"],
-],aw));
-
-p.push(sp());
-p.push(h2("What's Newly Achievable"));
-p.push(para(b("With zero critical items and AEO at 9.0/10, ",{color:C.ac}),n("PingCAP is the only commercial distributed SQL vendor with all of: AI bot rules, llms.txt, glossary, definitional page, 11 comparison pages, FAQ page, named blog authors, security headers, immutable cache, and AI-aligned homepage. Focus can now shift from \u201Cclose gaps\u201D to \u201Cextend depth\u201D \u2014 more comparisons (MariaDB, ClickHouse, Vitess), glossary growth (30+ terms), AEO content series.")));
+p.push(tbl(["#","Action","Impact","Effort"],DATA.topActions,aw));
 
 p.push(sp(),sp());
-p.push(new Paragraph({children:[sm("Progress report generated April 30, 2026. Baseline: April 19, 2026.",{italics:true,color:C.mu})]}));
+p.push(new Paragraph({children:[sm(`Progress report generated ${DATA.reportDate}. Baseline: ${DATA.baselineDate}.`,{italics:true,color:C.mu})]}));
 
+// ── Build doc ─────────────────────────────────────────────────────────────────
 const doc=new Document({sections:[{
   properties:{page:{size:{width:PW,height:15840},margin:{top:1440,right:MR,bottom:1440,left:ML}}},
-  headers:{default:new Header({children:[new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:6,color:C.ac,space:4}},children:[sm("PingCAP SEO/AEO Progress",{color:C.ac,bold:true}),sm("    April 30, 2026",{color:C.mu})]})]})} ,
-  footers:{default:new Footer({children:[new Paragraph({alignment:AlignmentType.CENTER,border:{top:{style:BorderStyle.SINGLE,size:4,color:"CCCCCC",space:4}},children:[sm("Page ",{color:C.mu}),new TextRun({children:[PageNumber.CURRENT],font:"Arial",size:18,color:C.mu})]})]})} ,
+  headers:{default:new Header({children:[new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:6,color:C.ac,space:4}},children:[sm("PingCAP SEO/AEO Progress",{color:C.ac,bold:true}),sm(`    ${DATA.reportDate}`,{color:C.mu})]})]})}  ,
+  footers:{default:new Footer({children:[new Paragraph({alignment:AlignmentType.CENTER,border:{top:{style:BorderStyle.SINGLE,size:4,color:"CCCCCC",space:4}},children:[sm("Page ",{color:C.mu}),new TextRun({children:[PageNumber.CURRENT],font:"Arial",size:18,color:C.mu})]})]})}  ,
   children:p
 }]});
 
 Packer.toBuffer(doc).then(buf=>{
-  const outPath = process.env.REPORT_OUT || "/Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/reports-archive/progress-reports/pingcap-seo-aeo-progress-2026-04-30.docx";
-  fs.writeFileSync(outPath,buf);
-  console.log("Done: " + outPath);
+  // Ensure output directory exists
+  const dir = require("path").dirname(DATA.outputPath);
+  if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(DATA.outputPath, buf);
+  console.log("✅ Done: " + DATA.outputPath);
+}).catch(err=>{
+  console.error("❌ Failed to generate docx:", err.message);
+  process.exit(1);
 });

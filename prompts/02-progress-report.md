@@ -116,10 +116,31 @@ GENERATING THE WORD DOC:
 
 The template at templates/gen-progress-docx.js is a Node.js script using docx-js. Read it first to understand the structure, then:
 
-1. Copy templates/gen-progress-docx.js to a new file with this week's date suffix (e.g., templates/gen-progress-2026-05-13.js)
-2. Update the date strings, title, and data tables to match the markdown report
-3. Run from the package root: node templates/gen-progress-YYYY-MM-DD.js
-4. Verify the .docx is generated at reports-archive/progress-reports/
+## Generating the .docx
+
+The template at `templates/gen-progress-docx.js` is **data-driven** — all content lives in the `DATA` object at the top of the file (lines 20–120). The rendering engine below it never needs to change.
+
+Steps:
+1. Copy `templates/gen-progress-docx.js` to `templates/gen-progress-YYYY-MM-DD.js`
+2. **Edit ONLY the DATA object** — update every field using this week's audit findings:
+   - `reportDate`, `baselineDate`, `aeoScore`, `seoScore`, `criticalCount`
+   - `headlineTitle`, `headlineBody`
+   - `improvements` array (from Prompt 1 IMPROVEMENTS section)
+   - `regressions` array (from Prompt 1 REGRESSIONS section)
+   - `scoring` array — 8 rows, weights are locked (19/19/18/15/12/10/4/3%)
+   - `openCritical/High/Medium/Low` arrays (from Prompt 1 Open Items Resolution table)
+   - `resolvedThisWeek` array
+   - `progressArc` — append this week's row, keep all rows
+   - `cumulativeStats` — update current values
+   - `topActions` — replace with this week's top 3
+   - `outputPath` — update date in filename
+3. Run from the package root:
+   ```bash
+   node templates/gen-progress-YYYY-MM-DD.js
+   ```
+4. Verify the .docx appears in `reports-archive/progress-reports/`
+
+**Do NOT edit anything below the "DO NOT EDIT BELOW THIS LINE" comment in the template.**
 
 Make sure to:
 - Use TiDB brand colors: dark BG #1A1A2E, accent #2E75B6, white text, card BG #232845

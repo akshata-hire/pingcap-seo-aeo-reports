@@ -140,7 +140,21 @@
       "Bash(git push *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(claude mcp *)"
+      "Bash(claude mcp *)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/what-is-tidb/)",
+      "Bash(grep -oiE '\\\\b\\(CEO|CTO|founder|co-founder|chief\\)\\\\b[^<]{0,80}')",
+      "Bash(node scripts/brand-authority-pull.js)",
+      "Bash(node scripts/upload-report-to-drive.js)",
+      "Bash(gh pr create --title 'Weekly SEO/AEO Report — May 28, 2026 \\(SEO +2, Glossary 49 terms\\)' --body ' *)",
+      "Bash(brew install *)",
+      "Bash(/opt/homebrew/bin/gh --version)",
+      "Bash(/usr/local/bin/gh --version)",
+      "Bash(find /opt/homebrew /usr/local -name \"gh\" -type f 2>/dev/null | head -3)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('html_url', d.get\\('message','error'\\)\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(git checkout *)",
+      "Bash(git rm *)",
+      "Bash(git commit *)"
     ]
   }
 }

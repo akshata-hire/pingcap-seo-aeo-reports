@@ -33,11 +33,11 @@ The **SEO Health Score (0–100)** is a weighted aggregate of 8 categories:
 - /what-is-tidb/ definitional page (+1.0)
 - /.well-known/llms.txt (-0.25 currently, +0.5 if launched)
 
-## Brand Authority & Backlinks scoring (12% of SEO Health Score)
+## Brand Authority & Backlinks scoring (15% of SEO Health Score)
 
 This category is **not part of the weekly 24-signal check** — it requires an external tool (Ahrefs, Moz, or Semrush) and is run **monthly**, or whenever a major PR/campaign event occurs. Record the snapshot in MEMORY.md under a `## Brand Authority Snapshot` heading so month-on-month comparisons remain valid.
 
-### Sub-categories and weights within Brand Authority (total: 12 points toward SEO Health)
+### Sub-categories and weights within Brand Authority (total: 15 points toward SEO Health)
 
 | Sub-category | Weight within category | Signals measured |
 |---|---|---|
@@ -97,7 +97,7 @@ This category is **not part of the weekly 24-signal check** — it requires an e
 | Review platform presence | ~40 | 71 reviews inferred from AggregateRating schema; recency unknown |
 | On-site authority signals | ~25 | About page 688 words, no founder names, no investor logos, no compliance badges detected (Mar 9 audit) |
 | **Composite Brand Authority** | **~37/100** | Weighted average |
-| **Contribution to SEO Health** | **~4.4/12 pts** | 37% × 12 |
+| **Contribution to SEO Health** | **~5.5/15 pts** | 37% × 15 |
 
 > This is the biggest gap in the current SEO Health score. Even moderate improvements here (getting to 60/100) would add ~3–4 points to the overall SEO Health Score — equivalent to the full value of the Performance or Schema categories.
 
