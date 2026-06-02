@@ -160,7 +160,10 @@
       "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/llms.txt)",
       "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/compare/)",
       "Bash(curl -o /dev/null -s -w \"%{time_starttransfer}\" https://www.pingcap.com/)",
-      "Bash(node templates/gen-progress-2026-06-02.js)"
+      "Bash(node templates/gen-progress-2026-06-02.js)",
+      "Bash(/opt/homebrew/bin/gh auth *)",
+      "Bash(/usr/local/bin/gh auth *)",
+      "Bash(/opt/homebrew/bin/gh pr create --title 'Weekly SEO/AEO reports: May 28 + June 2, 2026 — AEO 9.5, cleanup & fixes' --body ' *)"
     ]
   }
 }
