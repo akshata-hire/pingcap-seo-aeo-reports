@@ -155,7 +155,12 @@
       "Bash(git checkout *)",
       "Bash(git rm *)",
       "Bash(git commit *)",
-      "Bash(curl -o /dev/null -s -w \"%{http_code} \\(redirected to: %{redirect_url}\\)\" https://www.pingcap.com/compare/)"
+      "Bash(curl -o /dev/null -s -w \"%{http_code} \\(redirected to: %{redirect_url}\\)\" https://www.pingcap.com/compare/)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/.well-known/llms.txt)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/llms.txt)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" https://www.pingcap.com/compare/)",
+      "Bash(curl -o /dev/null -s -w \"%{time_starttransfer}\" https://www.pingcap.com/)",
+      "Bash(node templates/gen-progress-2026-06-02.js)"
     ]
   }
 }
