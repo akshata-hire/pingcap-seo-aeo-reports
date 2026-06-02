@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * upload-report-to-drive.js
- * Uploads the latest weekly SEO/AEO progress report (.docx only) to Google Drive.
+ * Uploads the latest weekly SEO/AEO progress report (.md + .docx) to Google Drive.
  *
  * Google Drive folder: SEO_AEO_weekly_report
  * Folder ID: 10n88MEowXKf2ZL6pL5Q46WDiFmZ-HLaO
@@ -23,8 +23,6 @@
  *      /Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/credentials.json
  *   5. Run this script once — it prints a URL, open it in browser, approve, paste the code back
  *   6. token.json saved automatically — silent from here on
- *
- * Note: Only .docx files are uploaded. .md files are kept locally only.
  */
 
 const fs = require("fs");
@@ -154,9 +152,8 @@ function findReportFiles(dateStr) {
 
   let targetDate = dateStr;
   if (!targetDate) {
-    // Detect latest date from .docx files only
     const dates = files
-      .map((f) => f.match(/pingcap-seo-aeo-progress-(\d{4}-\d{2}-\d{2})\.docx$/))
+      .map((f) => f.match(/pingcap-seo-aeo-progress-(\d{4}-\d{2}-\d{2})\.(md|docx)$/))
       .filter(Boolean)
       .map((m) => m[1]);
     const unique = [...new Set(dates)].sort();
@@ -164,19 +161,27 @@ function findReportFiles(dateStr) {
   }
 
   if (!targetDate) {
-    console.error(`\n❌ No .docx report files found in ${REPORTS_DIR}`);
+    console.error(`\n❌ No report files found in ${REPORTS_DIR}`);
     process.exit(1);
   }
 
-  const docxMime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  const mdFile = path.join(REPORTS_DIR, `pingcap-seo-aeo-progress-${targetDate}.md`);
   const docxFile = path.join(REPORTS_DIR, `pingcap-seo-aeo-progress-${targetDate}.docx`);
+  const docxMime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-  if (!fs.existsSync(docxFile)) {
-    console.error(`\n❌ .docx not found: ${docxFile}`);
+  const found = [];
+  if (fs.existsSync(mdFile)) found.push({ path: mdFile, mime: "text/markdown" });
+  else console.warn(`⚠️  .md not found: ${mdFile}`);
+
+  if (fs.existsSync(docxFile)) found.push({ path: docxFile, mime: docxMime });
+  else console.warn(`⚠️  .docx not found: ${docxFile}`);
+
+  if (found.length === 0) {
+    console.error(`\n❌ No files found for date ${targetDate}`);
     process.exit(1);
   }
 
-  return { files: [{ path: docxFile, mime: docxMime }], date: targetDate };
+  return { files: found, date: targetDate };
 }
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
@@ -189,7 +194,7 @@ async function main() {
 
   const { files, date } = findReportFiles(dateArg);
   console.log(`\n📅 Report date: ${date}`);
-  console.log(`   File: ${files.map((f) => path.basename(f.path)).join(", ")} (.docx only)`);
+  console.log(`   Files: ${files.map((f) => path.basename(f.path)).join(", ")}`);
 
   const auth = await authorize();
   const drive = google.drive({ version: "v3", auth });

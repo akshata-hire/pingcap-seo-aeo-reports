@@ -16,114 +16,102 @@ const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
 const DATA = {
 
   // ── Dates & scores ──────────────────────────────────────────────────────────
-  reportDate:     "May 26, 2026",          // e.g. "May 26, 2026"
-  baselineDate:   "May 13, 2026",          // prior week date
-  aeoScore:       "9.0",                   // current AEO score /10
-  seoScore:       "82",                    // current SEO Health /100
-  criticalCount:  0,                       // open critical items
-  baselineAeo:    "9.0",                   // prior week AEO
-  baselineSeo:    "82",                    // prior week SEO
-  baselineCritical: 0,                     // prior week critical count
+  reportDate:     "June 2, 2026",
+  baselineDate:   "May 28, 2026",
+  aeoScore:       "9.5",
+  seoScore:       "86",
+  criticalCount:  0,
+  baselineAeo:    "9.0",
+  baselineSeo:    "84",
+  baselineCritical: 0,
 
   // ── Headline ─────────────────────────────────────────────────────────────────
-  headlineTitle:  "Headline: [Replace with this week's key achievement]",
-  headlineBody:   "[Describe the main achievement this week in 2-3 sentences. What changed, what it means for AI/SEO, and why it matters.]",
+  headlineTitle:  "/.well-known/llms.txt live + Article/FAQPage schema on /what-is-tidb/ — AEO hits 9.5",
+  headlineBody:   "Two long-open items resolved in the same week: /.well-known/llms.txt now returns 200 (fixing the first-mover AEO gap open since March 9), and /what-is-tidb/ now carries full Article + FAQPage JSON-LD schema (recommended since April 30). Together these close the last two LOW open items, lift AEO to 9.5/10, and leave PingCAP with a near-complete AI-search readiness stack. The CSP header regression from May 28 remains unresolved — now in its second consecutive week.",
 
-  // ── Improvements table — add/remove rows as needed ──────────────────────────
-  // Format: ["#", "description (use ✅ prefix)", "impact level", "evidence"]
+  // ── Improvements table ───────────────────────────────────────────────────────
   improvements: [
-    ["1", "✅ [Improvement 1]", "HIGH", "[Evidence from audit]"],
-    ["2", "✅ [Improvement 2]", "MEDIUM", "[Evidence from audit]"],
+    ["1", "✅ /.well-known/llms.txt now 200", "HIGH", "Removes AEO -0.25 penalty; closes first-mover gap open since Mar 9"],
+    ["2", "✅ Article + FAQPage JSON-LD on /what-is-tidb/", "HIGH", "@type:Article and @type:FAQPage detected — enables rich results + AI citation"],
+    ["3", "✅ TTFB: 103ms to 86ms", "LOW", "Minor additional improvement on the recovery trend"],
   ],
 
   // ── Regressions table ────────────────────────────────────────────────────────
-  // Format: ["#", "description (use ⚠️ prefix)", "impact level", "notes"]
   regressions: [
-    ["R1", "⚠️ [Regression 1]", "MEDIUM", "[What happened and what to investigate]"],
+    ["R1", "⚠️ CSP header still missing (week 2)", "MEDIUM", "Content-Security-Policy absent since May 28 deploy — 2 consecutive weeks now"],
+    ["R2", "⚠️ Render-blocking scripts still at 6", "LOW", "jQuery, TranslatePress, CookieYes, dotLottie, 2x HubSpot — consider defer/async"],
   ],
 
-  // ── Scoring table (8 categories — DO NOT change weights) ────────────────────
-  // Format: ["Category", "Weight", "Prior score", "This week score", "Delta + notes"]
-  // Weights are locked: 19/19/18/15/12/10/4/3
+  // ── Scoring table ────────────────────────────────────────────────────────────
   scoring: [
-    ["Technical SEO",              "19%", "XX", "XX", "[delta and reason]"],
-    ["Content Quality",            "19%", "XX", "XX", "[delta and reason]"],
-    ["On-Page SEO",                "18%", "XX", "XX", "[delta and reason]"],
-    ["AI Search Readiness",        "15%", "XX", "XX", "[delta and reason]"],
-    ["Brand Authority & Backlinks","12%", "XX", "XX", "[delta — use last brand-authority-pull.js snapshot]"],
-    ["Schema",                     "10%", "XX", "XX", "[delta and reason]"],
-    ["Performance",                 "4%", "XX", "XX", "[TTFB reading]"],
-    ["Visual/Mobile",               "3%", "XX", "XX", "Not re-tested / [result]"],
+    ["Technical SEO",              "19%", "84", "84", "0 — Stable; CSP still missing"],
+    ["Content Quality",            "19%", "86", "86", "0 — Stable; 242 articles, 49 glossary"],
+    ["On-Page SEO",                "18%", "78", "78", "0 — Stable"],
+    ["AI Search Readiness",        "15%", "83", "90", "+7 — /.well-known/llms.txt live + Article/FAQPage schema on canonical page"],
+    ["Brand Authority & Backlinks","12%", "--", "--", "No pull this week — use last Apr 30 snapshot"],
+    ["Schema",                     "10%", "65", "78", "+13 — Article + FAQPage JSON-LD added to /what-is-tidb/"],
+    ["Performance",                 "4%", "72", "74", "+2 — TTFB 103ms to 86ms"],
+    ["Visual/Mobile",               "3%", "64", "64", "0 — Not re-tested"],
   ],
-  scoringWeightedPrior: "~82",
-  scoringWeightedCurrent: "~82",
-  scoringWeightedDelta: "+0 — [summary of week]",
+  scoringWeightedPrior: "~84",
+  scoringWeightedCurrent: "~86",
+  scoringWeightedDelta: "+2 — Schema depth and AI readiness gains drive improvement",
 
-  // ── Open items — fill from Prompt 1 resolution table ────────────────────────
-  openCritical: [
-    // ["#", "Issue", "Since", "Notes"]
-    // Leave empty array [] if none
-  ],
+  // ── Open items ────────────────────────────────────────────────────────────────
+  openCritical: [],
   openHigh: [
-    ["1", "242 articles remain in article-sitemap", "Mar 9", "74% removed (943→242). Last big content-quality lever"],
+    ["1", "242 articles remain in article-sitemap", "Mar 9", "-74% from 943; remaining content needs quality audit — last big lever"],
   ],
   openMedium: [
-    ["2", "No /compare/ hub page", "Mar 23", "11 pages now without central landing"],
-    ["3", "Glossary at 49 terms (target 50+)", "Mar 23", "CockroachDB has 50+. 1 away from target"],
-    ["4", "About page missing leadership", "Mar 9", "No founders/CEO/investors"],
-    ["5", "CSP header dropped", "May 13", "Was report-only, now completely absent — regression"],
-    ["6", "/.well-known/llms.txt still 404", "Mar 9", "Root llms.txt is 200; well-known path is extra coverage"],
+    ["2", "CSP header fully absent — 2nd consecutive week", "May 28", "Was report-only on Apr 30, now completely gone. Restore and enforce."],
+    ["3", "About page missing leadership", "Mar 9", "No founders, CEO, or investors named — E-E-A-T gap"],
+    ["4", "Render-blocking scripts at 6", "May 28", "jQuery, TranslatePress, CookieYes, dotLottie, 2x HubSpot — add defer/async"],
   ],
-  openLow: [
-    ["7", "/.well-known/llms.txt still 404", "Mar 9", "Easy first-mover when fixed"],
-  ],
+  openLow: [],
 
   // ── Resolved this week ───────────────────────────────────────────────────────
   resolvedThisWeek: [
-    // ["#", "Item", "Evidence"]
-    // ["1", "data-src images fixed", "Signal 15: 0 (was 10)"],
+    ["1", "/.well-known/llms.txt 404", "Now returns 200 — AEO penalty removed"],
+    ["2", "/what-is-tidb/ missing Article + FAQPage schema", "Both @type:Article and @type:FAQPage detected in JSON-LD"],
   ],
 
-  // ── 8-week progress arc — append new row each week, keep last 8 ─────────────
-  // Format: ["Date", "AEO", "SEO", "Articles", "Critical", "Key Achievement"]
+  // ── Progress arc ─────────────────────────────────────────────────────────────
   progressArc: [
     ["Mar 9",  "3.5",  "52",  "943", "10", "Baseline (34 items)"],
-    ["Mar 15", "~6.5", "68",  "943",  "7", "Security, AI rules, glossary"],
     ["Mar 22", "~7.5", "67",  "943",  "6", "Schema, hero, GTM"],
-    ["Mar 29", "8.0",  "~67", "560",  "5", "Article cleanup begins"],
     ["Apr 6",  "8.5",  "~75", "242",  "3", "Major cleanup sprint"],
-    ["Apr 12", "8.5",  "~77", "242",  "2", "Cache correction"],
     ["Apr 19", "8.5",  "~78", "242",  "1", "Homepage AI-Agents repositioning"],
-    ["Apr 30", "9.0",  "~82", "242",  "0", "/what-is-tidb/ LIVE — zero criticals"],
-    ["May 13", "9.0",  "~82", "242",  "0", "TTFB recovered 265ms→101ms. CSP dropped."],
-    ["May 26", "9.0",  "~82", "242",  "0", "[This week's key achievement]"],
+    ["Apr 30", "9.0",  "~82", "242",  "0", "/what-is-tidb/ LIVE — first zero criticals"],
+    ["May 28", "9.0",  "~84", "242",  "0", "Glossary 49 terms, data-src cleared, TTFB recovered"],
+    ["Jun 2",  "9.5",  "~86", "242",  "0", "/.well-known/llms.txt live + Article/FAQPage schema"],
   ],
 
   // ── Cumulative stats ─────────────────────────────────────────────────────────
-  // Format: ["Metric", "Mar 9 value", "Current value", "Change"]
   cumulativeStats: [
-    ["Items fixed (of 34)",      "0",     "23",               "68%"],
-    ["Critical remaining",       "10",    "0",                "-100%"],
-    ["Mass-gen articles",        "943",   "242",              "-74%"],
-    ["Render-blocking scripts",  "11",    "5",                "-55%"],
-    ["Security headers",         "0/7",   "5/7",              "+5 (CSP regression)"],
-    ["Comparison pages",         "4",     "11",               "+175%"],
-    ["Glossary terms",           "0",     "49",               "NEW"],
-    ["/what-is-tidb/ page",      "404",   "LIVE — 3K words",  "NEW"],
-    ["AEO Score",                "3.5/10","9.0/10",           "+157%"],
+    ["Items fixed (of 34)",      "0",      "29",                 "85% resolved"],
+    ["Critical remaining",       "10",     "0",                  "-100%"],
+    ["Mass-gen articles",        "943",    "242",                "-74%"],
+    ["Render-blocking scripts",  "11",     "6",                  "-45%"],
+    ["data-src images",          "~27",    "0",                  "-100%"],
+    ["Security headers",         "0/7",    "5/7",                "+5 (CSP still missing)"],
+    ["Comparison pages",         "4",      "11",                 "+175%"],
+    ["Glossary terms",           "0",      "49",                 "NEW"],
+    ["/what-is-tidb/ schema",    "None",   "Article + FAQPage",  "NEW — just added"],
+    ["/.well-known/llms.txt",    "404",    "200",                "NEW — just fixed"],
+    ["AEO Score",                "3.5/10", "9.5/10",             "+171%"],
+    ["SEO Health",               "~52",    "~86",                "+65%"],
   ],
 
-  // ── Top 3 actions ────────────────────────────────────────────────────────────
-  // Format: ["#", "Action", "Impact", "Effort"]
+  // ── Top 3 actions ─────────────────────────────────────────────────────────────
   topActions: [
-    ["1", "Restore CSP header — was report-only Apr 30, now completely absent", "Security + trust signal", "30 min (infra)"],
-    ["2", "Push glossary to 50+ terms — 1 term away from matching CockroachDB", "AEO competitive parity", "1–2 hours"],
-    ["3", "Push 12th comparison page — stalled at 11 for 2 consecutive audits", "AEO score improvement", "1 day"],
+    ["1", "Restore Content-Security-Policy header (enforce, not report-only)", "HIGH — 2 weeks without CSP; security + enterprise trust signal", "30 min (infra)"],
+    ["2", "Audit remaining 242 articles for thin/duplicate content", "HIGH — last major content-quality lever; could push SEO to 88+", "2-3 days"],
+    ["3", "Add named leadership to /about-us/ with Person schema (CEO, co-founders)", "MEDIUM — E-E-A-T signal + brand authority for AI citations", "2 hours"],
   ],
 
   // ── Output path ──────────────────────────────────────────────────────────────
   outputPath: process.env.REPORT_OUT ||
-    "/Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/reports-archive/progress-reports/pingcap-seo-aeo-progress-2026-05-26.docx",
+    "/Users/akshatahire/Desktop/Claude_Code/AEO:SEO report generator/reports-archive/progress-reports/pingcap-seo-aeo-progress-2026-06-02.docx",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
