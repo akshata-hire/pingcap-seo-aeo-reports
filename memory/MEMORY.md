@@ -46,15 +46,19 @@
 | 23 | GTM containers | 1 (GTM-TPX49SBK) |
 | 24 | Comparison pages list | amazon-aurora, azure-mysql, best-database-building-ai-apps, best-database-for-ai-agents, best-databases-for-saas-applications-at-scale, best-distributed-sql-databases, best-vector-database, cockroachdb, mysql, tidb-vs-postgresql-2026, yugabytedb |
 
-## Open Items (May 28)
+## Open Items (May 28, corrected post-audit)
 - **HIGH (1):** 242 articles in sitemap
-- **MEDIUM (4):** No /compare/ hub, About page leadership missing, CSP header removed, render-blocking +1
+- **MEDIUM (3):** About page leadership missing, CSP header removed, render-blocking +1
 - **LOW (2):** /.well-known/llms.txt 404, /what-is-tidb/ lacks Article schema
 - **CRITICAL (0):** None
+- **✅ CORRECTION: /compare/ hub page IS live** — returns 200 with title "TiDB Database Comparisons" and H1 "How TiDB Compares". Was incorrectly flagged as missing in May 28 report (audit script misread behaviour). Items resolved: 27/34 (79%).
 
 ## Most Critical Open Items
 1. **CSP header removed** — was report-only Apr 30, now completely absent. Restore immediately.
 2. **242 articles** — still the last major content-quality lever
+
+## Audit Script Note
+- Signal 20 (solutions 404s) previously checked /compare/ hub via redirect detection — was returning false positive "301 only". `/compare/` confirmed 200 with real content. Add direct status check for /compare/ to next audit run.
 
 ## SEO Skill
 - Installed: claude-seo from AgriciDaniel/claude-seo (Mar 9)

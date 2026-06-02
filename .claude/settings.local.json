@@ -154,7 +154,8 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
       "Bash(git checkout *)",
       "Bash(git rm *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code} \\(redirected to: %{redirect_url}\\)\" https://www.pingcap.com/compare/)"
     ]
   }
 }
